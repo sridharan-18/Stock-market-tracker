@@ -1,16 +1,9 @@
 // Stock Market Tracker Application
 
-// Mock stock data - Replace with real API calls
-const mockStocks = {
-    'AAPL': { symbol: 'AAPL', name: 'Apple Inc.', price: 189.45, change: 2.35, changePercent: 1.25 },
-    'GOOGL': { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 142.80, change: -1.20, changePercent: -0.84 },
-    'MSFT': { symbol: 'MSFT', name: 'Microsoft Corporation', price: 378.91, change: 5.45, changePercent: 1.46 },
-    'AMZN': { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 182.50, change: 3.75, changePercent: 2.10 },
-    'TSLA': { symbol: 'TSLA', name: 'Tesla Inc.', price: 242.84, change: -8.20, changePercent: -3.27 },
-    'META': { symbol: 'META', name: 'Meta Platforms Inc.', price: 498.75, change: 12.45, changePercent: 2.56 },
-    'NVDA': { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 875.20, change: 25.30, changePercent: 2.97 },
-    'NFLX': { symbol: 'NFLX', name: 'Netflix Inc.', price: 456.78, change: -5.12, changePercent: -1.11 },
-};
+const DEFAULT_SYMBOLS = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'KPRMILL.NS'];
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:8000'
+    : '/';
 
 // Application State
 const state = {
@@ -35,11 +28,22 @@ const lastUpdate = document.getElementById('lastUpdate');
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
     loadWatchlistFromStorage();
+    if (state.watchlist.length === 0) {
+        state.watchlist = DEFAULT_SYMBOLS.map(symbol => ({
+            symbol,
+            name: symbol,
+            price: 0,
+            change: 0,
+            changePercent: 0
+        }));
+        saveWatchlistToStorage();
+    }
     setupEventListeners();
     updateUI();
     updateTime();
+    refreshWatchlist();
     setInterval(updateTime, 1000);
-    setInterval(simulatePriceUpdate, 5000); // Update prices every 5 seconds
+    setInterval(refreshWatchlist, 15000);
 });
 
 // Event Listeners
@@ -62,30 +66,34 @@ function handleSearchInput(e) {
         return;
     }
 
-    const filtered = Object.values(mockStocks).filter(stock =>
-        stock.symbol.includes(query) || stock.name.toUpperCase().includes(query)
-    );
+    searchResults.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-secondary);">Searching live quotes…</div>';
+    searchResults.classList.remove('hidden');
 
-    if (filtered.length === 0) {
-        searchResults.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-secondary);">No stocks found</div>';
-    } else {
-        searchResults.innerHTML = filtered.map(stock => `
-            <div class="search-result-item" onclick="addToWatchlist('${stock.symbol}')">
-                <div>
-                    <span class="result-symbol">${stock.symbol}</span>
-                    <span class="result-name">${stock.name}</span>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: 600;">$${stock.price.toFixed(2)}</div>
-                    <div class="${stock.change >= 0 ? 'change-positive' : 'change-negative'}">
-                        ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%
+    fetchQuote(query)
+        .then(stock => {
+            if (!stock) {
+                searchResults.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-secondary);">No live quote available for that symbol</div>';
+                return;
+            }
+
+            searchResults.innerHTML = `
+                <div class="search-result-item" onclick="addToWatchlist('${stock.symbol}')">
+                    <div>
+                        <span class="result-symbol">${stock.symbol}</span>
+                        <span class="result-name">${stock.name}</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600;">$${stock.price.toFixed(2)}</div>
+                        <div class="${stock.change >= 0 ? 'change-positive' : 'change-negative'}">
+                            ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
-    }
-
-    searchResults.classList.remove('hidden');
+            `;
+        })
+        .catch(() => {
+            searchResults.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-secondary);">Unable to load quote right now</div>';
+        });
 }
 
 function handleSearch() {
@@ -96,13 +104,20 @@ function handleSearch() {
         return;
     }
 
-    if (mockStocks[query]) {
-        addToWatchlist(query);
-        searchInput.value = '';
-        searchResults.classList.add('hidden');
-    } else {
-        showToast(`Stock '${query}' not found`, 'error');
-    }
+    fetchQuote(query)
+        .then(stock => {
+            if (!stock) {
+                showToast(`Unable to fetch live quote for '${query}'`, 'error');
+                return;
+            }
+
+            addToWatchlist(stock.symbol);
+            searchInput.value = '';
+            searchResults.classList.add('hidden');
+        })
+        .catch(() => {
+            showToast(`Unable to fetch live quote for '${query}'`, 'error');
+        });
 }
 
 function handleClickOutside(e) {
@@ -113,19 +128,18 @@ function handleClickOutside(e) {
 
 // Add stock to watchlist
 function addToWatchlist(symbol) {
-    if (state.watchlist.find(s => s.symbol === symbol)) {
-        showToast(`${symbol} is already in your watchlist`, 'warning');
+    const normalized = symbol.toUpperCase();
+    if (state.watchlist.find(s => s.symbol === normalized)) {
+        showToast(`${normalized} is already in your watchlist`, 'warning');
         return;
     }
 
-    const stock = mockStocks[symbol];
-    if (stock) {
-        state.watchlist.push({ ...stock });
-        addActivity(`Added ${symbol} to watchlist`, 'positive');
-        showToast(`${symbol} added to watchlist`, 'success');
-        updateUI();
-        saveWatchlistToStorage();
-    }
+    const placeholder = { symbol: normalized, name: normalized, price: 0, change: 0, changePercent: 0 };
+    state.watchlist.push(placeholder);
+    addActivity(`Added ${normalized} to watchlist`, 'positive');
+    showToast(`${normalized} added to watchlist`, 'success');
+    saveWatchlistToStorage();
+    refreshWatchlist();
 }
 
 // Remove stock from watchlist
@@ -153,16 +167,31 @@ function clearWatchlist() {
     }
 }
 
-// Simulate price updates
-function simulatePriceUpdate() {
-    state.watchlist.forEach(stock => {
-        const changeAmount = (Math.random() - 0.5) * 2; // Random change between -1 and 1
-        stock.change = parseFloat((stock.change + changeAmount).toFixed(2));
-        stock.changePercent = parseFloat((stock.change / stock.price * 100).toFixed(2));
-        stock.price = parseFloat((stock.price + changeAmount).toFixed(2));
-    });
-    renderWatchlist();
-    updateStats();
+// Fetch live quotes for the active watchlist
+async function refreshWatchlist() {
+    if (state.watchlist.length === 0) {
+        updateUI();
+        return;
+    }
+
+    const refreshed = [];
+    for (const stock of state.watchlist) {
+        const quote = await fetchQuote(stock.symbol);
+        refreshed.push(quote ? { ...stock, ...quote } : stock);
+    }
+
+    state.watchlist = refreshed;
+    saveWatchlistToStorage();
+    updateUI();
+}
+
+async function fetchQuote(symbol) {
+    const response = await fetch(`${API_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}`);
+    const payload = await response.json();
+    if (!payload.ok) {
+        return null;
+    }
+    return payload.quote;
 }
 
 // Render watchlist
@@ -262,7 +291,7 @@ function renderActivityLog() {
 function viewDetails(symbol) {
     const stock = state.watchlist.find(s => s.symbol === symbol);
     if (stock) {
-        alert(`${stock.symbol} - ${stock.name}\n\nPrice: $${stock.price.toFixed(2)}\nChange: ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%\n\nNote: Full charting feature coming soon!`);
+        alert(`${stock.symbol} - ${stock.name}\n\nPrice: $${stock.price.toFixed(2)}\nChange: ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%\n\nLive data is refreshed from Yahoo Finance.`);
     }
 }
 
