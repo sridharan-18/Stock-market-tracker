@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <h1>Stock Market Tracker</h1>
+                </div>
+                <div class="market-summary">
+                    <div class="summary-item">
+                        <span class="label">Market Status:</span>
+                        <span class="value" id="marketStatus">Open</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Search and Add Section -->
+            <section class="search-section">
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search stock symbol (e.g., AAPL, GOOGL, MSFT)..."
+                        class="search-input"
+                    >
+                    <button id="searchBtn" class="search-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div id="searchResults" class="search-results hidden"></div>
+            </section>
+
+            <!-- Stats Overview -->
+            <section class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-label">Portfolio Value</div>
+                    <div class="stat-value" id="portfolioValue">$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Gain/Loss</div>
+                    <div class="stat-value" id="totalGainLoss">+$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Watched Stocks</div>
+                    <div class="stat-value" id="watchedCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Top Gainer</div>
+                    <div class="stat-value" id="topGainer">--</div>
+                </div>
+            </section>
+
+            <!-- Watchlist -->
+            <section class="watchlist-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-star"></i> My Watchlist</h2>
+                    <button id="clearWatchlist" class="btn-secondary" title="Clear watchlist">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div id="watchlist" class="watchlist-container">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No stocks in watchlist. Search and add stocks to track them.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Activity -->
+            <section class="activity-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                </div>
+                <div id="activity" class="activity-log">
+                    <div class="empty-state">
+                        <p>No recent activity</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Stock Market Tracker | Data updated in real-time | <span id="lastUpdate"></span></p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
