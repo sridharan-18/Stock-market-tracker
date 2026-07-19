@@ -6,6 +6,7 @@
     <title>Stock Market Tracker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -100,6 +101,44 @@
 
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
+
+    <!-- Chart Modal -->
+    <div id="chartModal" class="chart-modal hidden">
+        <div class="chart-modal-content">
+            <div class="chart-modal-header">
+                <h2 id="chartTitle">Stock Chart</h2>
+                <button class="btn-close" onclick="closeChartModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chart-controls">
+                <select id="timeRange" onchange="updateChart()">
+                    <option value="1mo">1 Month</option>
+                    <option value="3mo">3 Months</option>
+                    <option value="6mo">6 Months</option>
+                    <option value="1y">1 Year</option>
+                    <option value="2y">2 Years</option>
+                </select>
+                <select id="interval" onchange="updateChart()">
+                    <option value="1d">Daily</option>
+                    <option value="1wk">Weekly</option>
+                    <option value="1mo">Monthly</option>
+                </select>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showMA" checked onchange="updateChart()">
+                    Show Moving Averages
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showVolume" checked onchange="updateChart()">
+                    Show Volume
+                </label>
+            </div>
+            <div id="chartContainer" class="chart-container"></div>
+            <div id="chartLoading" class="chart-loading hidden">
+                <i class="fas fa-spinner fa-spin"></i> Loading chart data...
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

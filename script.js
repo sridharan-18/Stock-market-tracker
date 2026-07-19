@@ -291,7 +291,7 @@ function renderActivityLog() {
 function viewDetails(symbol) {
     const stock = state.watchlist.find(s => s.symbol === symbol);
     if (stock) {
-        alert(`${stock.symbol} - ${stock.name}\n\nPrice: $${stock.price.toFixed(2)}\nChange: ${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%\n\nLive data is refreshed from Yahoo Finance.`);
+        openChartModal(symbol);
     }
 }
 
@@ -351,4 +351,200 @@ document.addEventListener('keydown', (e) => {
         searchInput.focus();
         e.preventDefault();
     }
+    if (e.key === 'Escape') {
+        closeChartModal();
+    }
 });
+
+// Chart Modal Functions
+let currentChartSymbol = null;
+
+function openChartModal(symbol) {
+    currentChartSymbol = symbol;
+    const stock = state.watchlist.find(s => s.symbol === symbol);
+    if (stock) {
+        document.getElementById('chartTitle').textContent = `${stock.symbol} - ${stock.name}`;
+    }
+    document.getElementById('chartModal').classList.remove('hidden');
+    document.getElementById('chartModal').classList.add('show');
+    updateChart();
+}
+
+function closeChartModal() {
+    document.getElementById('chartModal').classList.remove('show');
+    document.getElementById('chartModal').classList.add('hidden');
+    currentChartSymbol = null;
+}
+
+async function updateChart() {
+    if (!currentChartSymbol) return;
+
+    const timeRange = document.getElementById('timeRange').value;
+    const interval = document.getElementById('interval').value;
+    const showMA = document.getElementById('showMA').checked;
+    const showVolume = document.getElementById('showVolume').checked;
+
+    document.getElementById('chartLoading').classList.remove('hidden');
+    document.getElementById('chartContainer').innerHTML = '';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/historical?symbol=${encodeURIComponent(currentChartSymbol)}&interval=${interval}&range=${timeRange}`);
+        const payload = await response.json();
+        
+        if (!payload.ok) {
+            throw new Error(payload.error);
+        }
+
+        const data = payload.data;
+        renderCandlestickChart(data, showMA, showVolume);
+    } catch (error) {
+        document.getElementById('chartContainer').innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary);">
+                <p>Unable to load chart data: ${error.message}</p>
+            </div>
+        `;
+    } finally {
+        document.getElementById('chartLoading').classList.add('hidden');
+    }
+}
+
+function calculateMovingAverages(data, periods = [20, 50]) {
+    const closePrices = data.map(d => d.close);
+    const mas = {};
+    
+    periods.forEach(period => {
+        mas[period] = [];
+        for (let i = 0; i < closePrices.length; i++) {
+            if (i < period - 1) {
+                mas[period].push(null);
+            } else {
+                const sum = closePrices.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+                mas[period].push(sum / period);
+            }
+        }
+    });
+    
+    return mas;
+}
+
+function renderCandlestickChart(data, showMA, showVolume) {
+    const timestamps = data.map(d => new Date(d.timestamp * 1000));
+    const opens = data.map(d => d.open);
+    const highs = data.map(d => d.high);
+    const lows = data.map(d => d.low);
+    const closes = data.map(d => d.close);
+    const volumes = data.map(d => d.volume);
+
+    const traces = [];
+
+    // Candlestick trace
+    const candlestick = {
+        x: timestamps,
+        open: opens,
+        high: highs,
+        low: lows,
+        close: closes,
+        type: 'candlestick',
+        name: 'Price',
+        increasing: { line: { color: '#10b981' } },
+        decreasing: { line: { color: '#ef4444' } },
+        xaxis: 'x',
+        yaxis: 'y'
+    };
+    traces.push(candlestick);
+
+    // Moving averages
+    if (showMA) {
+        const mas = calculateMovingAverages(data, [20, 50]);
+        
+        if (mas[20]) {
+            traces.push({
+                x: timestamps,
+                y: mas[20],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'MA 20',
+                line: { color: '#3b82f6', width: 1.5 },
+                xaxis: 'x',
+                yaxis: 'y'
+            });
+        }
+        
+        if (mas[50]) {
+            traces.push({
+                x: timestamps,
+                y: mas[50],
+                type: 'scatter',
+                mode: 'lines',
+                name: 'MA 50',
+                line: { color: '#f59e0b', width: 1.5 },
+                xaxis: 'x',
+                yaxis: 'y'
+            });
+        }
+    }
+
+    // Volume
+    if (showVolume) {
+        const colors = closes.map((close, i) => {
+            if (i === 0) return '#10b981';
+            return close >= opens[i] ? '#10b981' : '#ef4444';
+        });
+
+        traces.push({
+            x: timestamps,
+            y: volumes,
+            type: 'bar',
+            name: 'Volume',
+            marker: { color: colors },
+            xaxis: 'x',
+            yaxis: 'y2',
+            opacity: 0.7
+        });
+    }
+
+    const layout = {
+        title: '',
+        xaxis: {
+            rangeslider: { visible: false },
+            type: 'date',
+            gridcolor: '#334155',
+            showgrid: true
+        },
+        yaxis: {
+            title: 'Price',
+            gridcolor: '#334155',
+            showgrid: true,
+            side: 'left'
+        },
+        yaxis2: {
+            title: 'Volume',
+            overlaying: 'y',
+            side: 'right',
+            showgrid: false,
+            visible: showVolume
+        },
+        plot_bgcolor: '#1e293b',
+        paper_bgcolor: '#1e293b',
+        font: { color: '#f1f5f9' },
+        margin: { l: 60, r: 60, t: 30, b: 60 },
+        legend: {
+            x: 0,
+            y: 1,
+            bgcolor: 'rgba(30, 41, 59, 0.8)',
+            bordercolor: '#334155',
+            borderwidth: 1
+        },
+        dragmode: 'zoom',
+        showlegend: true
+    };
+
+    const config = {
+        responsive: true,
+        displayModeBar: true,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+        displaylogo: false
+    };
+
+    Plotly.newPlot('chartContainer', traces, layout, config);
+}

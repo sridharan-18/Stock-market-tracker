@@ -5,12 +5,21 @@ A modern, interactive web application for tracking and managing stock portfolios
 ## Features
 
 ### 📊 Core Features
-- **Stock Search** - Search for stocks by symbol or company name
+- **Stock Search** - Search for stocks by symbol or company name with live quotes
 - **Watchlist Management** - Add and remove stocks to track
-- **Real-Time Updates** - Simulated price updates every 5 seconds
+- **Real-Time Updates** - Live price updates from Yahoo Finance every 15 seconds
 - **Price Change Indicators** - Visual indicators (✓↑ green for gains, ✕↓ red for losses)
 - **Activity Logging** - Track all your actions with timestamps
 - **Portfolio Statistics** - View total portfolio value, gains/losses, and top performers
+
+### 📈 Data Visualization
+- **Interactive Candlestick Charts** - Professional OHLC (Open, High, Low, Close) candlestick charts
+- **Moving Averages** - 20-day and 50-day moving average lines for trend analysis
+- **Volume Charts** - Trading volume visualization with color-coded bars
+- **Multiple Time Ranges** - View data for 1 month, 3 months, 6 months, 1 year, or 2 years
+- **Flexible Intervals** - Daily, weekly, or monthly data intervals
+- **Interactive Controls** - Toggle moving averages and volume display on/off
+- **Zoom & Pan** - Interactive chart controls for detailed analysis
 
 ### 💾 Data Persistence
 - **Local Storage** - Watchlist automatically saved to browser storage
@@ -42,12 +51,22 @@ The application includes mock data for these stocks:
 
 ### Managing Your Watchlist
 - **Add Stocks**: Search and select stocks to track
-- **View Details**: Click the "Chart" button to see more information
+- **View Charts**: Click the "Chart" button to see interactive candlestick charts
 - **Remove Stocks**: Click the "Remove" button to delete from watchlist
 - **Clear All**: Use the trash icon in the header to clear entire watchlist
 
+### Chart Features
+- **Open Chart**: Click the "Chart" button on any stock card
+- **Time Range**: Select from 1 month, 3 months, 6 months, 1 year, or 2 years
+- **Interval**: Choose daily, weekly, or monthly data
+- **Moving Averages**: Toggle 20-day and 50-day moving averages on/off
+- **Volume**: Toggle volume chart display on/off
+- **Interactive**: Zoom, pan, and explore the chart with mouse controls
+- **Close**: Press Escape key or click the X button to close the chart
+
 ### Keyboard Shortcuts
 - **Press "/" key** - Focus on search input from anywhere in the app
+- **Press "Escape" key** - Close chart modal
 
 ### Understanding the Display
 - **Green ✓↑** - Stock price increased (positive change)
@@ -74,7 +93,9 @@ The recent activity section shows:
 ### Architecture
 - **HTML5** - Semantic markup structure
 - **CSS3** - Modern styling with CSS Grid/Flexbox
-- **Vanilla JavaScript** - No external dependencies required
+- **Vanilla JavaScript** - Core application logic
+- **Plotly.js** - Interactive charting library for data visualization
+- **Python Server** - Backend for fetching live market data from Yahoo Finance
 - **Local Storage API** - For data persistence
 
 ### File Structure
@@ -82,7 +103,8 @@ The recent activity section shows:
 Stock Market Tracker/
 ├── index.html          # Main HTML file
 ├── style.css           # Complete styling
-├── script.js           # Application logic
+├── script.js           # Application logic and chart rendering
+├── server.py           # Python backend for Yahoo Finance API
 ├── package.json        # Project metadata
 └── README.md           # This file
 ```
@@ -90,11 +112,15 @@ Stock Market Tracker/
 ### Key Functions
 - `addToWatchlist()` - Add stock to watchlist
 - `removeFromWatchlist()` - Remove stock from watchlist
-- `simulatePriceUpdate()` - Update stock prices
+- `refreshWatchlist()` - Fetch live quotes from Yahoo Finance
 - `renderWatchlist()` - Render watchlist UI
 - `updateStats()` - Calculate and display statistics
 - `addActivity()` - Log user actions
 - `showToast()` - Display notifications
+- `openChartModal()` - Open interactive chart for a stock
+- `updateChart()` - Fetch and render historical data
+- `renderCandlestickChart()` - Render candlestick chart with Plotly
+- `calculateMovingAverages()` - Calculate 20-day and 50-day moving averages
 
 ## Browser Compatibility
 
@@ -107,24 +133,29 @@ Stock Market Tracker/
 ## Future Enhancements
 
 Potential features for future versions:
-- Real API integration (Alpha Vantage, Yahoo Finance, etc.)
-- Interactive charts (using Chart.js or similar)
 - Price alerts and notifications
 - Portfolio comparison tools
-- Historical data analysis
-- Stock news feed
+- Advanced technical indicators (RSI, MACD, Bollinger Bands)
+- Stock news feed integration
 - Multiple portfolio support
-- User authentication
+- User authentication and cloud sync
 - Trading simulation
-- Export to CSV
+- Export to CSV/Excel
+- Additional chart types (line, area, scatter)
 
 ## API Integration
 
-To connect to real market data, replace the `mockStocks` object in `script.js` with API calls to services like:
-- **Alpha Vantage** - Free API for stock prices
-- **Yahoo Finance** - Historical and real-time data
-- **IEX Cloud** - Comprehensive market data
-- **Finnhub** - Real-time market data
+The application currently integrates with:
+- **Yahoo Finance** - Live quotes and historical OHLCV data via Python backend
+
+To run the backend server:
+```bash
+python server.py
+```
+
+The server will start on `http://127.0.0.1:8000` and provide:
+- `/quote?symbol=XXX` - Live quote endpoint
+- `/historical?symbol=XXX&interval=1d&range=1mo` - Historical data endpoint
 
 ## Tips for Best Experience
 
