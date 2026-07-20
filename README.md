@@ -12,7 +12,17 @@ A modern, interactive web application for tracking and managing stock portfolios
 - **Activity Logging** - Track all your actions with timestamps
 - **Portfolio Statistics** - View total portfolio value, gains/losses, and top performers
 
-### 📈 Data Visualization
+### � Portfolio Simulation
+- **Virtual Trading** - Buy and sell stocks with virtual cash
+- **Starting Capital** - Begin with $10,000 virtual cash balance
+- **Real-time Portfolio Value** - Track portfolio value based on current stock prices
+- **Holdings Tracking** - View shares owned for each stock
+- **Transaction History** - Complete record of all buy/sell transactions
+- **Performance Tracking** - Monitor portfolio returns over time
+- **Portfolio Performance Chart** - Visual chart showing portfolio value history
+- **Average Cost Calculation** - Track average cost basis for holdings
+
+### �📈 Data Visualization
 - **Interactive Candlestick Charts** - Professional OHLC (Open, High, Low, Close) candlestick charts
 - **Moving Averages** - 20-day and 50-day moving average lines for trend analysis
 - **Volume Charts** - Trading volume visualization with color-coded bars
@@ -52,8 +62,18 @@ The application includes mock data for these stocks:
 ### Managing Your Watchlist
 - **Add Stocks**: Search and select stocks to track
 - **View Charts**: Click the "Chart" button to see interactive candlestick charts
+- **Buy Stocks**: Click the "Buy" button to purchase shares with virtual cash
+- **Sell Stocks**: Click the "Sell" button to sell owned shares
 - **Remove Stocks**: Click the "Remove" button to delete from watchlist
 - **Clear All**: Use the trash icon in the header to clear entire watchlist
+
+### Portfolio Trading
+- **Starting Balance**: Begin with $10,000 virtual cash
+- **Buy Shares**: Enter number of shares to buy (cost deducted from cash)
+- **Sell Shares**: Enter number of shares to sell (proceeds added to cash)
+- **View Holdings**: See number of shares owned for each stock
+- **Track Performance**: Monitor portfolio value and returns over time
+- **View Chart**: See portfolio performance history in the Portfolio Performance section
 
 ### Chart Features
 - **Open Chart**: Click the "Chart" button on any stock card
@@ -76,8 +96,8 @@ The application includes mock data for these stocks:
 ## Statistics Overview
 
 The dashboard displays:
-- **Portfolio Value** - Total value of all watched stocks
-- **Total Gain/Loss** - Combined gains/losses across all stocks
+- **Portfolio Value** - Total value of cash and stock holdings
+- **Total Gain/Loss** - Portfolio return from initial $10,000 investment
 - **Watched Stocks** - Number of stocks in your watchlist
 - **Top Gainer** - Stock with the highest percentage gain
 
@@ -117,6 +137,12 @@ Stock Market Tracker/
 - `updateStats()` - Calculate and display statistics
 - `addActivity()` - Log user actions
 - `showToast()` - Display notifications
+- `buyStock()` - Execute buy transaction
+- `sellStock()` - Execute sell transaction
+- `calculatePortfolioValue()` - Calculate total portfolio value
+- `trackPortfolioValue()` - Record portfolio value over time
+- `updatePortfolioUI()` - Update portfolio statistics display
+- `renderPortfolioChart()` - Render portfolio performance chart
 - `openChartModal()` - Open interactive chart for a stock
 - `updateChart()` - Fetch and render historical data
 - `renderCandlestickChart()` - Render candlestick chart with Plotly

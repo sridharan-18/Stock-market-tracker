@@ -8,7 +8,13 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
 // Application State
 const state = {
     watchlist: [],
-    activityLog: []
+    activityLog: [],
+    portfolio: {
+        cash: 10000, // Starting cash balance
+        holdings: {}, // Symbol -> { shares, avgCost }
+        transactions: [], // Transaction history
+        valueHistory: [] // Portfolio value over time
+    }
 };
 
 // DOM Elements
@@ -28,6 +34,7 @@ const lastUpdate = document.getElementById('lastUpdate');
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
     loadWatchlistFromStorage();
+    loadPortfolioFromStorage();
     if (state.watchlist.length === 0) {
         state.watchlist = DEFAULT_SYMBOLS.map(symbol => ({
             symbol,
@@ -40,10 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setupEventListeners();
     updateUI();
+    updatePortfolioUI();
     updateTime();
     refreshWatchlist();
     setInterval(updateTime, 1000);
     setInterval(refreshWatchlist, 15000);
+    setInterval(trackPortfolioValue, 60000); // Track portfolio value every minute
 });
 
 // Event Listeners
@@ -206,11 +215,16 @@ function renderWatchlist() {
         return;
     }
 
-    watchlistContainer.innerHTML = state.watchlist.map(stock => `
+    watchlistContainer.innerHTML = state.watchlist.map(stock => {
+        const holding = state.portfolio.holdings[stock.symbol];
+        const shares = holding ? holding.shares : 0;
+        
+        return `
         <div class="stock-card">
             <div class="stock-info">
                 <div class="stock-symbol">${stock.symbol}</div>
                 <div class="stock-name">${stock.name}</div>
+                ${shares > 0 ? `<div class="stock-holding">Owned: ${shares} shares</div>` : ''}
             </div>
             <div class="stock-price-section">
                 <div class="stock-price">$${stock.price.toFixed(2)}</div>
@@ -220,15 +234,23 @@ function renderWatchlist() {
                 </div>
             </div>
             <div class="stock-actions">
+                <button class="btn-action btn-buy" onclick="openTradeModal('${stock.symbol}', 'buy')">
+                    <i class="fas fa-plus"></i> Buy
+                </button>
+                ${shares > 0 ? `
+                <button class="btn-action btn-sell" onclick="openTradeModal('${stock.symbol}', 'sell')">
+                    <i class="fas fa-minus"></i> Sell
+                </button>
+                ` : ''}
                 <button class="btn-action" onclick="viewDetails('${stock.symbol}')">
                     <i class="fas fa-chart-bar"></i> Chart
                 </button>
                 <button class="btn-action btn-remove" onclick="removeFromWatchlist('${stock.symbol}')">
-                    <i class="fas fa-trash-alt"></i> Remove
+                    <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // Update statistics
@@ -345,6 +367,125 @@ function loadWatchlistFromStorage() {
     }
 }
 
+function savePortfolioToStorage() {
+    localStorage.setItem('stockPortfolio', JSON.stringify(state.portfolio));
+}
+
+function loadPortfolioFromStorage() {
+    const saved = localStorage.getItem('stockPortfolio');
+    if (saved) {
+        state.portfolio = JSON.parse(saved);
+    }
+}
+
+// Portfolio Functions
+function calculatePortfolioValue() {
+    let holdingsValue = 0;
+    for (const symbol in state.portfolio.holdings) {
+        const holding = state.portfolio.holdings[symbol];
+        const stock = state.watchlist.find(s => s.symbol === symbol);
+        if (stock && holding.shares > 0) {
+            holdingsValue += stock.price * holding.shares;
+        }
+    }
+    return state.portfolio.cash + holdingsValue;
+}
+
+function trackPortfolioValue() {
+    const value = calculatePortfolioValue();
+    state.portfolio.valueHistory.push({
+        timestamp: Date.now(),
+        value: value
+    });
+    // Keep only last 30 days of history
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    state.portfolio.valueHistory = state.portfolio.valueHistory.filter(h => h.timestamp > thirtyDaysAgo);
+    savePortfolioToStorage();
+}
+
+function buyStock(symbol, shares) {
+    const stock = state.watchlist.find(s => s.symbol === symbol);
+    if (!stock) {
+        showToast('Stock not found in watchlist', 'error');
+        return false;
+    }
+
+    const cost = stock.price * shares;
+    if (cost > state.portfolio.cash) {
+        showToast('Insufficient funds', 'error');
+        return false;
+    }
+
+    // Update cash
+    state.portfolio.cash -= cost;
+
+    // Update holdings
+    if (!state.portfolio.holdings[symbol]) {
+        state.portfolio.holdings[symbol] = { shares: 0, avgCost: 0 };
+    }
+
+    const holding = state.portfolio.holdings[symbol];
+    const totalShares = holding.shares + shares;
+    const totalCost = (holding.shares * holding.avgCost) + cost;
+    holding.avgCost = totalCost / totalShares;
+    holding.shares = totalShares;
+
+    // Record transaction
+    state.portfolio.transactions.push({
+        type: 'BUY',
+        symbol,
+        shares,
+        price: stock.price,
+        total: cost,
+        timestamp: Date.now()
+    });
+
+    addActivity(`Bought ${shares} shares of ${symbol} at $${stock.price.toFixed(2)}`, 'positive');
+    savePortfolioToStorage();
+    updatePortfolioUI();
+    return true;
+}
+
+function sellStock(symbol, shares) {
+    const stock = state.watchlist.find(s => s.symbol === symbol);
+    if (!stock) {
+        showToast('Stock not found in watchlist', 'error');
+        return false;
+    }
+
+    const holding = state.portfolio.holdings[symbol];
+    if (!holding || holding.shares < shares) {
+        showToast('Insufficient shares', 'error');
+        return false;
+    }
+
+    const proceeds = stock.price * shares;
+
+    // Update cash
+    state.portfolio.cash += proceeds;
+
+    // Update holdings
+    holding.shares -= shares;
+    if (holding.shares === 0) {
+        delete state.portfolio.holdings[symbol];
+    }
+
+    // Record transaction
+    state.portfolio.transactions.push({
+        type: 'SELL',
+        symbol,
+        shares,
+        price: stock.price,
+        total: proceeds,
+        timestamp: Date.now()
+    });
+
+    addActivity(`Sold ${shares} shares of ${symbol} at $${stock.price.toFixed(2)}`, 'negative');
+    savePortfolioToStorage();
+    updatePortfolioUI();
+    return true;
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
     if (e.key === '/') {
@@ -353,8 +494,151 @@ document.addEventListener('keydown', (e) => {
     }
     if (e.key === 'Escape') {
         closeChartModal();
+        closeTradeModal();
     }
 });
+
+// Trade Modal Functions
+let currentTradeSymbol = null;
+let currentTradeType = null;
+
+function openTradeModal(symbol, type) {
+    currentTradeSymbol = symbol;
+    currentTradeType = type;
+    
+    const stock = state.watchlist.find(s => s.symbol === symbol);
+    if (!stock) return;
+    
+    document.getElementById('tradeTitle').textContent = type === 'buy' ? `Buy ${symbol}` : `Sell ${symbol}`;
+    document.getElementById('tradeSymbol').textContent = symbol;
+    document.getElementById('tradePrice').textContent = `$${stock.price.toFixed(2)}`;
+    document.getElementById('tradeCash').textContent = `$${state.portfolio.cash.toFixed(2)}`;
+    document.getElementById('tradeShares').value = 1;
+    
+    const holding = state.portfolio.holdings[symbol];
+    if (type === 'sell' && holding) {
+        document.getElementById('tradeShares').max = holding.shares;
+    } else {
+        document.getElementById('tradeShares').removeAttribute('max');
+    }
+    
+    updateTradeTotal();
+    
+    document.getElementById('tradeModal').classList.remove('hidden');
+    document.getElementById('tradeModal').classList.add('show');
+}
+
+function closeTradeModal() {
+    document.getElementById('tradeModal').classList.remove('show');
+    document.getElementById('tradeModal').classList.add('hidden');
+    currentTradeSymbol = null;
+    currentTradeType = null;
+}
+
+function updateTradeTotal() {
+    const shares = parseInt(document.getElementById('tradeShares').value) || 0;
+    const stock = state.watchlist.find(s => s.symbol === currentTradeSymbol);
+    if (stock) {
+        const total = stock.price * shares;
+        document.getElementById('tradeTotal').textContent = `$${total.toFixed(2)}`;
+    }
+}
+
+function executeTrade() {
+    const shares = parseInt(document.getElementById('tradeShares').value) || 0;
+    if (shares <= 0) {
+        showToast('Please enter a valid number of shares', 'error');
+        return;
+    }
+    
+    if (currentTradeType === 'buy') {
+        if (buyStock(currentTradeSymbol, shares)) {
+            closeTradeModal();
+        }
+    } else if (currentTradeType === 'sell') {
+        if (sellStock(currentTradeSymbol, shares)) {
+            closeTradeModal();
+        }
+    }
+}
+
+// Portfolio UI Functions
+function updatePortfolioUI() {
+    const portfolioValue = calculatePortfolioValue();
+    const initialCash = 10000; // Starting cash
+    const totalReturn = portfolioValue - initialCash;
+    const returnPercent = (totalReturn / initialCash * 100);
+    
+    // Update portfolio stats in the main UI
+    portfolioValue.textContent = `$${portfolioValue.toFixed(2)}`;
+    totalGainLoss.textContent = `${totalReturn >= 0 ? '+' : ''}$${totalReturn.toFixed(2)} (${returnPercent >= 0 ? '+' : ''}${returnPercent.toFixed(2)}%)`;
+    totalGainLoss.style.color = totalReturn >= 0 ? 'var(--success-color)' : 'var(--danger-color)';
+    
+    // Update portfolio chart
+    renderPortfolioChart();
+}
+
+function renderPortfolioChart() {
+    const container = document.getElementById('portfolioChart');
+    if (!container) return;
+    
+    const history = state.portfolio.valueHistory;
+    if (history.length < 2) {
+        container.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary);">
+                <p>Portfolio performance chart will appear after tracking data is collected</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const timestamps = history.map(h => new Date(h.timestamp));
+    const values = history.map(h => h.value);
+    
+    const trace = {
+        x: timestamps,
+        y: values,
+        type: 'scatter',
+        mode: 'lines',
+        fill: 'tozeroy',
+        name: 'Portfolio Value',
+        line: { color: '#3b82f6', width: 2 }
+    };
+    
+    const layout = {
+        title: '',
+        xaxis: {
+            type: 'date',
+            gridcolor: '#334155',
+            showgrid: true,
+            showticklabels: true
+        },
+        yaxis: {
+            title: 'Portfolio Value ($)',
+            gridcolor: '#334155',
+            showgrid: true
+        },
+        plot_bgcolor: 'transparent',
+        paper_bgcolor: 'transparent',
+        font: { color: '#f1f5f9' },
+        margin: { l: 60, r: 20, t: 20, b: 40 },
+        showlegend: false,
+        hovermode: 'x unified'
+    };
+    
+    const config = {
+        responsive: true,
+        displayModeBar: false,
+        displaylogo: false
+    };
+    
+    Plotly.newPlot(container, [trace], layout, config);
+}
+
+function openPortfolioChart() {
+    // For now, just scroll to the portfolio chart section
+    document.getElementById('portfolioChart').scrollIntoView({ behavior: 'smooth' });
+}
 
 // Chart Modal Functions
 let currentChartSymbol = null;

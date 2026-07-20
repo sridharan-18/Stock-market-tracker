@@ -677,3 +677,211 @@ body {
 .chart-loading.hidden {
     display: none;
 }
+
+/* Trade Modal */
+.trade-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.trade-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.trade-modal.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.trade-modal-content {
+    background: var(--secondary-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.trade-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.trade-modal-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.trade-info {
+    padding: 1.5rem 2rem;
+    background: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.trade-stock-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.trade-symbol {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.trade-price {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.trade-balance {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.trade-balance span:last-child {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.trade-form {
+    padding: 2rem;
+}
+
+.trade-input-group {
+    margin-bottom: 1.5rem;
+}
+
+.trade-input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.trade-input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--primary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.trade-input-group input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.trade-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--primary-color);
+    border-radius: 6px;
+}
+
+.trade-total span:first-child {
+    color: var(--text-secondary);
+}
+
+.trade-total span:last-child {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.trade-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-primary {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    background: var(--border-color);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
+
+/* Stock Holding Display */
+.stock-holding {
+    font-size: 0.85rem;
+    color: var(--accent-color);
+    margin-top: 0.25rem;
+}
+
+/* Buy/Sell Buttons */
+.btn-buy {
+    background: var(--success-color) !important;
+    color: white !important;
+}
+
+.btn-buy:hover {
+    background: #059669 !important;
+}
+
+.btn-sell {
+    background: var(--danger-color) !important;
+    color: white !important;
+}
+
+.btn-sell:hover {
+    background: #dc2626 !important;
+}
+
+/* Portfolio Chart */
+.portfolio-chart-container {
+    height: 300px;
+    padding: 1rem;
+    background: var(--primary-color);
+    border-radius: 8px;
+}
