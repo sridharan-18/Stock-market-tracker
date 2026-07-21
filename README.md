@@ -22,7 +22,16 @@ A modern, interactive web application for tracking and managing stock portfolios
 - **Portfolio Performance Chart** - Visual chart showing portfolio value history
 - **Average Cost Calculation** - Track average cost basis for holdings
 
-### �📈 Data Visualization
+### 🔔 Alerts & Notifications
+- **Price Threshold Alerts** - Set alerts when stocks go above or below specific prices
+- **Real-time Alert Checking** - Alerts checked every 30 seconds
+- **Toast Notifications** - Instant visual feedback when alerts trigger
+- **Activity Log Integration** - Alert triggers logged in activity history
+- **Alert Persistence** - Alerts saved to localStorage
+- **Daily Summary** - Automatic daily portfolio performance summary
+- **Gain/Loss Tracking** - Daily summary shows portfolio returns and individual stock performance
+
+### 📈 Data Visualization
 - **Interactive Candlestick Charts** - Professional OHLC (Open, High, Low, Close) candlestick charts
 - **Moving Averages** - 20-day and 50-day moving average lines for trend analysis
 - **Volume Charts** - Trading volume visualization with color-coded bars
@@ -74,6 +83,15 @@ The application includes mock data for these stocks:
 - **View Holdings**: See number of shares owned for each stock
 - **Track Performance**: Monitor portfolio value and returns over time
 - **View Chart**: See portfolio performance history in the Portfolio Performance section
+
+### Setting Price Alerts
+- **Open Alert Modal**: Click the "Alert" button on any stock card
+- **Set Above Threshold**: Enter price to trigger alert when stock goes above
+- **Set Below Threshold**: Enter price to trigger alert when stock drops below
+- **Clear Alerts**: Use "Clear Alert" button to remove existing alerts
+- **Alert Notifications**: Toast notifications appear when alerts trigger
+- **Alert History**: Triggered alerts logged in activity log
+- **Daily Summary**: Automatic daily portfolio performance summary every 24 hours
 
 ### Chart Features
 - **Open Chart**: Click the "Chart" button on any stock card
@@ -143,6 +161,9 @@ Stock Market Tracker/
 - `trackPortfolioValue()` - Record portfolio value over time
 - `updatePortfolioUI()` - Update portfolio statistics display
 - `renderPortfolioChart()` - Render portfolio performance chart
+- `setAlert()` - Set price threshold alerts for stocks
+- `checkAlerts()` - Check if any alerts should be triggered
+- `generateDailySummary()` - Generate daily portfolio performance summary
 - `openChartModal()` - Open interactive chart for a stock
 - `updateChart()` - Fetch and render historical data
 - `renderCandlestickChart()` - Render candlestick chart with Plotly

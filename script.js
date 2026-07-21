@@ -14,7 +14,10 @@ const state = {
         holdings: {}, // Symbol -> { shares, avgCost }
         transactions: [], // Transaction history
         valueHistory: [] // Portfolio value over time
-    }
+    },
+    alerts: {}, // Symbol -> { above: price, below: price }
+    triggeredAlerts: [], // History of triggered alerts
+    dailySummary: null // Last daily summary
 };
 
 // DOM Elements
@@ -35,6 +38,7 @@ const lastUpdate = document.getElementById('lastUpdate');
 document.addEventListener('DOMContentLoaded', () => {
     loadWatchlistFromStorage();
     loadPortfolioFromStorage();
+    loadAlertsFromStorage();
     if (state.watchlist.length === 0) {
         state.watchlist = DEFAULT_SYMBOLS.map(symbol => ({
             symbol,
@@ -53,6 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateTime, 1000);
     setInterval(refreshWatchlist, 15000);
     setInterval(trackPortfolioValue, 60000); // Track portfolio value every minute
+    setInterval(checkAlerts, 30000); // Check alerts every 30 seconds
+    setInterval(generateDailySummary, 86400000); // Daily summary every 24 hours
 });
 
 // Event Listeners
@@ -242,6 +248,9 @@ function renderWatchlist() {
                     <i class="fas fa-minus"></i> Sell
                 </button>
                 ` : ''}
+                <button class="btn-action" onclick="openAlertModal('${stock.symbol}')">
+                    <i class="fas fa-bell"></i> Alert
+                </button>
                 <button class="btn-action" onclick="viewDetails('${stock.symbol}')">
                     <i class="fas fa-chart-bar"></i> Chart
                 </button>
@@ -378,6 +387,17 @@ function loadPortfolioFromStorage() {
     }
 }
 
+function saveAlertsToStorage() {
+    localStorage.setItem('stockAlerts', JSON.stringify(state.alerts));
+}
+
+function loadAlertsFromStorage() {
+    const saved = localStorage.getItem('stockAlerts');
+    if (saved) {
+        state.alerts = JSON.parse(saved);
+    }
+}
+
 // Portfolio Functions
 function calculatePortfolioValue() {
     let holdingsValue = 0;
@@ -486,6 +506,96 @@ function sellStock(symbol, shares) {
     return true;
 }
 
+// Alert Functions
+function setAlert(symbol, above, below) {
+    if (!above && !below) {
+        delete state.alerts[symbol];
+    } else {
+        state.alerts[symbol] = { above: above || null, below: below || null };
+    }
+    saveAlertsToStorage();
+}
+
+function checkAlerts() {
+    for (const symbol in state.alerts) {
+        const alert = state.alerts[symbol];
+        const stock = state.watchlist.find(s => s.symbol === symbol);
+        
+        if (!stock) continue;
+        
+        let triggered = false;
+        let message = '';
+        
+        if (alert.above && stock.price >= alert.above) {
+            message = `${symbol} reached $${stock.price.toFixed(2)} (above threshold $${alert.above.toFixed(2)})`;
+            triggered = true;
+        }
+        
+        if (alert.below && stock.price <= alert.below) {
+            message = `${symbol} dropped to $${stock.price.toFixed(2)} (below threshold $${alert.below.toFixed(2)})`;
+            triggered = true;
+        }
+        
+        if (triggered) {
+            state.triggeredAlerts.push({
+                symbol,
+                price: stock.price,
+                alert,
+                timestamp: Date.now(),
+                message
+            });
+            
+            // Keep only last 50 triggered alerts
+            if (state.triggeredAlerts.length > 50) {
+                state.triggeredAlerts.shift();
+            }
+            
+            showToast(message, 'warning');
+            addActivity(`Alert triggered: ${message}`, 'warning');
+        }
+    }
+}
+
+function generateDailySummary() {
+    const portfolioValue = calculatePortfolioValue();
+    const initialCash = 10000;
+    const totalReturn = portfolioValue - initialCash;
+    const returnPercent = (totalReturn / initialCash * 100);
+    
+    const holdingsSummary = Object.entries(state.portfolio.holdings).map(([symbol, holding]) => {
+        const stock = state.watchlist.find(s => s.symbol === symbol);
+        if (!stock) return null;
+        const currentValue = stock.price * holding.shares;
+        const costBasis = holding.shares * holding.avgCost;
+        const gain = currentValue - costBasis;
+        const gainPercent = (gain / costBasis * 100);
+        
+        return {
+            symbol,
+            shares: holding.shares,
+            avgCost: holding.avgCost,
+            currentPrice: stock.price,
+            currentValue,
+            gain,
+            gainPercent
+        };
+    }).filter(Boolean);
+    
+    state.dailySummary = {
+        date: new Date().toISOString(),
+        portfolioValue,
+        totalReturn,
+        returnPercent,
+        holdings: holdingsSummary,
+        cash: state.portfolio.cash
+    };
+    
+    // Show summary notification
+    const summaryMessage = `Daily Summary: Portfolio $${portfolioValue.toFixed(2)} (${returnPercent >= 0 ? '+' : ''}${returnPercent.toFixed(2)}%)`;
+    showToast(summaryMessage, returnPercent >= 0 ? 'success' : 'warning');
+    addActivity(summaryMessage, returnPercent >= 0 ? 'positive' : 'negative');
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
     if (e.key === '/') {
@@ -495,8 +605,59 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeChartModal();
         closeTradeModal();
+        closeAlertModal();
     }
 });
+
+// Alert Modal Functions
+let currentAlertSymbol = null;
+
+function openAlertModal(symbol) {
+    currentAlertSymbol = symbol;
+    
+    const stock = state.watchlist.find(s => s.symbol === symbol);
+    if (!stock) return;
+    
+    document.getElementById('alertTitle').textContent = `Set Alert for ${symbol}`;
+    document.getElementById('alertSymbol').textContent = symbol;
+    document.getElementById('alertCurrentPrice').textContent = `$${stock.price.toFixed(2)}`;
+    
+    // Pre-fill existing alert values
+    const existingAlert = state.alerts[symbol];
+    document.getElementById('alertAbove').value = existingAlert?.above || '';
+    document.getElementById('alertBelow').value = existingAlert?.below || '';
+    
+    document.getElementById('alertModal').classList.remove('hidden');
+    document.getElementById('alertModal').classList.add('show');
+}
+
+function closeAlertModal() {
+    document.getElementById('alertModal').classList.remove('show');
+    document.getElementById('alertModal').classList.add('hidden');
+    currentAlertSymbol = null;
+}
+
+function saveAlert() {
+    const above = parseFloat(document.getElementById('alertAbove').value) || null;
+    const below = parseFloat(document.getElementById('alertBelow').value) || null;
+    
+    if (!above && !below) {
+        showToast('Please set at least one alert threshold', 'warning');
+        return;
+    }
+    
+    setAlert(currentAlertSymbol, above, below);
+    showToast(`Alert set for ${currentAlertSymbol}`, 'success');
+    addActivity(`Set alert for ${currentAlertSymbol}: above $${above || 'N/A'}, below $${below || 'N/A'}`, 'positive');
+    closeAlertModal();
+}
+
+function clearAlert() {
+    setAlert(currentAlertSymbol, null, null);
+    showToast(`Alert cleared for ${currentAlertSymbol}`, 'success');
+    addActivity(`Cleared alert for ${currentAlertSymbol}`, 'negative');
+    closeAlertModal();
+}
 
 // Trade Modal Functions
 let currentTradeSymbol = null;
