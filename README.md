@@ -4,6 +4,18 @@ A modern, interactive web application for tracking and managing stock portfolios
 
 ## Features
 
+### 📊 Interactive Dashboard
+- **Dash-based Web App** - Interactive dashboard built with Dash and Plotly
+- **Date Range Filter** - Select custom date ranges for analysis
+- **Stock Comparison** - Compare multiple stocks side by side
+- **Performance Metrics** - Real-time portfolio value, gains/losses, top performers
+- **Price Comparison Chart** - Interactive line chart comparing stock prices
+- **Performance Bar Chart** - Visual comparison of percentage gains/losses
+- **Volume Comparison** - Average trading volume comparison
+- **Stock Details Table** - Detailed breakdown of all tracked stocks
+- **Auto-refresh** - Dashboard updates every 15 seconds
+- **Dark Theme** - Professional dark theme with Bootstrap
+
 ### 📊 Core Features
 - **Stock Search** - Search for stocks by symbol or company name with live quotes
 - **Watchlist Management** - Add and remove stocks to track
@@ -63,10 +75,20 @@ The application includes mock data for these stocks:
 
 ## How to Use
 
-### Getting Started
-1. Open `index.html` in your web browser
-2. Use the search bar to find stocks by symbol (e.g., AAPL) or company name
-3. Click on a stock or press the Search button to add it to your watchlist
+### Running the Applications
+
+**Web Dashboard (Dash):**
+1. Install dependencies: `pip install -r requirements.txt`
+2. Run the Dash dashboard: `python dashboard/dashboard.py`
+3. Open browser to `http://127.0.0.1:8050`
+4. Use filters to customize date range, stocks, and interval
+5. View interactive charts and performance metrics
+
+**Web App (HTML/JS):**
+1. Start the backend server: `python src/fetch_data.py`
+2. Open `dashboard/index.html` in your web browser
+3. Use the search bar to find stocks by symbol (e.g., AAPL) or company name
+4. Click on a stock or press the Search button to add it to your watchlist
 
 ### Managing Your Watchlist
 - **Add Stocks**: Search and select stocks to track
@@ -138,12 +160,22 @@ The recent activity section shows:
 
 ### File Structure
 ```
-Stock Market Tracker/
-├── index.html          # Main HTML file
-├── style.css           # Complete styling
-├── script.js           # Application logic and chart rendering
-├── server.py           # Python backend for Yahoo Finance API
-├── package.json        # Project metadata
+stock-market-tracker/
+├── data/               # Data storage directory
+├── notebooks/          # Jupyter notebooks for analysis
+├── src/                # Source code modules
+│   ├── fetch_data.py   # Data fetching from Yahoo Finance API
+│   ├── visualize.py    # Chart and visualization functions
+│   ├── portfolio.py    # Portfolio management logic
+│   └── alerts.py       # Alert and notification system
+├── dashboard/          # Web dashboard files
+│   ├── index.html      # Main web application
+│   ├── style.css       # Styling
+│   ├── script.js       # Frontend logic
+│   └── dashboard.py    # Dash interactive dashboard
+├── tests/              # Test files
+├── requirements.txt    # Python dependencies
+├── LICENSE             # MIT License
 └── README.md           # This file
 ```
 
