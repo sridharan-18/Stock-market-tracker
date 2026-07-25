@@ -54,6 +54,48 @@ def calculate_bollinger_bands(data, period=20, std_dev=2):
     lower_band = sma - (std * std_dev)
     return upper_band, sma, lower_band
 
+
+def calculate_atr(high, low, close, period=14):
+    """Calculate Average True Range (ATR)"""
+    high_low = high - low
+    high_close = np.abs(high - close.shift())
+    low_close = np.abs(low - close.shift())
+    
+    true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+    atr = true_range.rolling(window=period).mean()
+    return atr
+
+
+def calculate_historical_volatility(data, period=20, annualize=True):
+    """Calculate Historical Volatility"""
+    log_returns = np.log(data / data.shift(1))
+    volatility = log_returns.rolling(window=period).std()
+    
+    if annualize:
+        volatility = volatility * np.sqrt(252)  # Annualize (252 trading days)
+    
+    return volatility
+
+
+def calculate_volatility_cone(data, periods=[30, 60, 90, 180]):
+    """Calculate Volatility Cone for different time periods"""
+    log_returns = np.log(data / data.shift(1)).dropna()
+    volatilities = {}
+    
+    for period in periods:
+        if len(log_returns) >= period:
+            vol = log_returns.rolling(window=period).std() * np.sqrt(252)
+            volatilities[f'{period}d'] = {
+                'mean': vol.mean(),
+                'std': vol.std(),
+                'min': vol.min(),
+                'max': vol.max(),
+                'percentile_25': vol.quantile(0.25),
+                'percentile_75': vol.quantile(0.75)
+            }
+    
+    return volatilities
+
 app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
@@ -210,7 +252,10 @@ app.layout = dbc.Container([
                                     {'label': 'Moving Averages (SMA/EMA)', 'value': 'ma'},
                                     {'label': 'RSI', 'value': 'rsi'},
                                     {'label': 'MACD', 'value': 'macd'},
-                                    {'label': 'Bollinger Bands', 'value': 'bollinger'}
+                                    {'label': 'Bollinger Bands', 'value': 'bollinger'},
+                                    {'label': 'ATR (Average True Range)', 'value': 'atr'},
+                                    {'label': 'Historical Volatility', 'value': 'volatility'},
+                                    {'label': 'Volatility Cone', 'value': 'volatility_cone'}
                                 ],
                                 value='ma',
                                 className='mb-2'
@@ -640,6 +685,127 @@ def update_technical_indicators(selected_stock, indicator_type, symbols, start_d
                 yaxis_title="Price",
                 template='plotly_dark'
             )
+        
+        elif indicator_type == 'atr':
+            # ATR (Average True Range)
+            atr = calculate_atr(data['High'], data['Low'], data['Close'])
+            
+            fig.add_trace(go.Scatter(
+                x=data.index,
+                y=data['Close'],
+                name='Price',
+                mode='lines',
+                line=dict(color='white'),
+                yaxis='y1'
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=data.index,
+                y=atr,
+                name='ATR (14)',
+                mode='lines',
+                line=dict(color='orange'),
+                yaxis='y2'
+            ))
+            
+            fig.update_layout(
+                title=f"{selected_stock} - Average True Range (ATR)",
+                xaxis_title="Date",
+                yaxis_title="Price",
+                yaxis2=dict(
+                    title="ATR",
+                    overlaying='y',
+                    side='right',
+                    showgrid=False
+                ),
+                template='plotly_dark'
+            )
+            
+        elif indicator_type == 'volatility':
+            # Historical Volatility
+            hist_vol = calculate_historical_volatility(data['Close'])
+            
+            fig.add_trace(go.Scatter(
+                x=data.index,
+                y=hist_vol,
+                name='Historical Volatility (20d)',
+                mode='lines',
+                line=dict(color='purple')
+            ))
+            
+            fig.add_hline(y=hist_vol.mean(), line_dash="dash", line_color="white", 
+                         annotation_text=f"Avg: {hist_vol.mean():.2f}%")
+            
+            fig.update_layout(
+                title=f"{selected_stock} - Historical Volatility (20-day, Annualized)",
+                xaxis_title="Date",
+                yaxis_title="Volatility (%)",
+                template='plotly_dark'
+            )
+            
+        elif indicator_type == 'volatility_cone':
+            # Volatility Cone
+            vol_cone = calculate_volatility_cone(data['Close'])
+            
+            if vol_cone:
+                periods = list(vol_cone.keys())
+                means = [vol_cone[p]['mean'] * 100 for p in periods]
+                mins = [vol_cone[p]['min'] * 100 for p in periods]
+                maxs = [vol_cone[p]['max'] * 100 for p in periods]
+                p25 = [vol_cone[p]['percentile_25'] * 100 for p in periods]
+                p75 = [vol_cone[p]['percentile_75'] * 100 for p in periods]
+                
+                fig.add_trace(go.Scatter(
+                    x=periods,
+                    y=means,
+                    name='Mean',
+                    mode='lines+markers',
+                    line=dict(color='white')
+                ))
+                
+                fig.add_trace(go.Scatter(
+                    x=periods,
+                    y=maxs,
+                    name='Max',
+                    mode='lines+markers',
+                    line=dict(color='red')
+                ))
+                
+                fig.add_trace(go.Scatter(
+                    x=periods,
+                    y=mins,
+                    name='Min',
+                    mode='lines+markers',
+                    line=dict(color='green')
+                ))
+                
+                fig.add_trace(go.Scatter(
+                    x=periods,
+                    y=p75,
+                    name='75th Percentile',
+                    mode='lines+markers',
+                    line=dict(color='orange', dash='dash')
+                ))
+                
+                fig.add_trace(go.Scatter(
+                    x=periods,
+                    y=p25,
+                    name='25th Percentile',
+                    mode='lines+markers',
+                    line=dict(color='cyan', dash='dash')
+                ))
+                
+                fig.update_layout(
+                    title=f"{selected_stock} - Volatility Cone",
+                    xaxis_title="Period",
+                    yaxis_title="Volatility (%)",
+                    template='plotly_dark'
+                )
+            else:
+                fig.update_layout(
+                    title="Insufficient data for Volatility Cone",
+                    template='plotly_dark'
+                )
         
         return fig
         

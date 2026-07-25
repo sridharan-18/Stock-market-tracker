@@ -24,6 +24,9 @@ An interactive web application for analyzing and comparing stock performance usi
 - **RSI Indicator**: Relative Strength Index with overbought/oversold levels (70/30)
 - **MACD Indicator**: Moving Average Convergence Divergence with signal line and histogram
 - **Bollinger Bands**: Volatility bands with upper/lower bands and SMA
+- **ATR (Average True Range)**: Measure of volatility considering price ranges
+- **Historical Volatility**: Rolling standard deviation of returns (annualized)
+- **Volatility Cone**: Volatility distribution across different time periods
 - **Technical Analysis Charts**: Interactive charts for all technical indicators
 
 ## Installation
@@ -121,6 +124,21 @@ The dashboard comes pre-configured with these popular stocks:
 - **Upper Band**: SMA + (2 × Standard Deviation)
 - **Lower Band**: SMA - (2 × Standard Deviation)
 - **Usage**: Measure volatility and identify potential breakouts
+
+### ATR (Average True Range)
+- **Calculation**: Maximum of (High-Low, |High-Close|, |Low-Close|)
+- **Period**: 14-day average
+- **Usage**: Measure volatility and set stop-loss levels
+
+### Historical Volatility
+- **Calculation**: Standard deviation of log returns (annualized)
+- **Period**: 20-day rolling window
+- **Usage**: Assess risk and price variability
+
+### Volatility Cone
+- **Periods**: 30, 60, 90, 180 days
+- **Metrics**: Mean, Min, Max, 25th/75th percentiles
+- **Usage**: Compare current volatility to historical ranges
 
 ## Technologies Used
 
