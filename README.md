@@ -17,6 +17,15 @@ An interactive web application for analyzing and comparing stock performance usi
 - **Auto-refresh**: Dashboard updates every 15 seconds
 - **Dark Theme**: Professional dark theme with Bootstrap
 
+### 📊 Advanced Analytics
+
+- **Moving Averages (SMA)**: Simple Moving Average with 20 and 50 periods
+- **Moving Averages (EMA)**: Exponential Moving Average with 20 periods
+- **RSI Indicator**: Relative Strength Index with overbought/oversold levels (70/30)
+- **MACD Indicator**: Moving Average Convergence Divergence with signal line and histogram
+- **Bollinger Bands**: Volatility bands with upper/lower bands and SMA
+- **Technical Analysis Charts**: Interactive charts for all technical indicators
+
 ## Installation
 
 1. Clone the repository:
@@ -61,6 +70,7 @@ http://127.0.0.1:8050
 - **Volume Comparison**: Bar chart showing average trading volume
 - **Risk Metrics**: Grouped bar chart showing volatility and Sharpe ratio
 - **Correlation Matrix**: Heatmap showing correlations between stocks
+- **Technical Indicators**: Interactive charts for SMA, EMA, RSI, MACD, and Bollinger Bands
 
 ### Stock Details Table
 - Symbol
@@ -87,6 +97,30 @@ The dashboard comes pre-configured with these popular stocks:
 
 - **Volatility**: Annualized standard deviation of returns (higher = more risk)
 - **Sharpe Ratio**: Risk-adjusted return (higher = better risk-adjusted performance)
+
+## Technical Indicators Explained
+
+### Moving Averages (SMA/EMA)
+- **SMA (Simple Moving Average)**: Average price over a specified period (20, 50 days)
+- **EMA (Exponential Moving Average)**: Weighted average giving more importance to recent prices
+- **Usage**: Identify trends and potential support/resistance levels
+
+### RSI (Relative Strength Index)
+- **Range**: 0-100
+- **Overbought**: Above 70 (potential sell signal)
+- **Oversold**: Below 30 (potential buy signal)
+- **Usage**: Identify overbought/oversold conditions
+
+### MACD (Moving Average Convergence Divergence)
+- **MACD Line**: Fast EMA (12) - Slow EMA (26)
+- **Signal Line**: EMA of MACD line (9)
+- **Histogram**: MACD Line - Signal Line
+- **Usage**: Identify trend changes and momentum
+
+### Bollinger Bands
+- **Upper Band**: SMA + (2 × Standard Deviation)
+- **Lower Band**: SMA - (2 × Standard Deviation)
+- **Usage**: Measure volatility and identify potential breakouts
 
 ## Technologies Used
 
