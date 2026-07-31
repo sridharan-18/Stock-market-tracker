@@ -7,12 +7,30 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime, timedelta
 import numpy as np
+from indian_stocks import (
+    IndianStockData,
+    fetch_indian_stock_data,
+    fetch_indian_stock_info,
+    get_default_indian_stocks,
+    fetch_nse_index_data,
+    combine_yfinance_nse_data
+)
 
 # Initialize Dash app with Bootstrap theme
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY], suppress_callback_exceptions=True)
 
-# Default stocks
-DEFAULT_STOCKS = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX']
+# Default stocks (mixed US and Indian)
+DEFAULT_STOCKS = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'RELIANCE', 'TCS', 'HDFCBANK', 'INFY']
+
+# Indian stocks for quick selection
+INDIAN_STOCKS = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'HINDUNILVR', 'ITC', 'SBIN']
+
+# Exchange options
+EXCHANGE_OPTIONS = [
+    {'label': 'US Stocks (NYSE/NASDAQ)', 'value': 'US'},
+    {'label': 'NSE (National Stock Exchange)', 'value': 'NSE'},
+    {'label': 'BSE (Bombay Stock Exchange)', 'value': 'BSE'}
+]
 
 
 # Technical Indicator Functions
@@ -112,6 +130,15 @@ app.layout = dbc.Container([
                     html.H5("Filters", className="card-title"),
                     dbc.Row([
                         dbc.Col([
+                            html.Label("Exchange"),
+                            dcc.Dropdown(
+                                id='exchange',
+                                options=EXCHANGE_OPTIONS,
+                                value='US',
+                                className='mb-2'
+                            )
+                        ], md=4),
+                        dbc.Col([
                             html.Label("Stock Symbols (comma-separated)"),
                             dcc.Input(
                                 id='stock-symbols',
@@ -120,6 +147,22 @@ app.layout = dbc.Container([
                                 className='form-control mb-2'
                             )
                         ], md=4),
+                        dbc.Col([
+                            html.Label("Quick Select"),
+                            dcc.Dropdown(
+                                id='quick-select',
+                                options=[
+                                    {'label': 'US Tech Stocks', 'value': 'US_TECH'},
+                                    {'label': 'Indian Nifty 50', 'value': 'NIFTY50'},
+                                    {'label': 'Indian Top 8', 'value': 'INDIAN_TOP8'}
+                                ],
+                                value=None,
+                                placeholder='Select preset...',
+                                className='mb-2'
+                            )
+                        ], md=4)
+                    ]),
+                    dbc.Row([
                         dbc.Col([
                             html.Label("Date Range"),
                             dcc.DatePickerRange(
@@ -141,9 +184,12 @@ app.layout = dbc.Container([
                                 value='1d',
                                 className='mb-2'
                             )
+                        ], md=4),
+                        dbc.Col([
+                            html.Label(""),
+                            dbc.Button("Apply Filters", id='apply-filters', color='primary', className='mt-2')
                         ], md=4)
-                    ]),
-                    dbc.Button("Apply Filters", id='apply-filters', color='primary', className='mt-2')
+                    ])
                 ])
             ])
         ], className='mb-4')
@@ -299,6 +345,28 @@ app.layout = dbc.Container([
 
 
 @app.callback(
+    Output('stock-symbols', 'value'),
+    [Input('quick-select', 'value'),
+     Input('exchange', 'value')]
+)
+def update_stock_symbols(quick_select, exchange):
+    """Update stock symbols based on quick select and exchange."""
+    if quick_select == 'US_TECH':
+        return ','.join(['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX'])
+    elif quick_select == 'NIFTY50':
+        fetcher = IndianStockData('NSE')
+        return ','.join(fetcher.get_nifty50_symbols())
+    elif quick_select == 'INDIAN_TOP8':
+        return ','.join(INDIAN_STOCKS)
+    elif exchange == 'NSE':
+        return ','.join(get_default_indian_stocks('NSE'))
+    elif exchange == 'BSE':
+        return ','.join(get_default_indian_stocks('BSE'))
+    else:
+        return ','.join(DEFAULT_STOCKS)
+
+
+@app.callback(
     [Output('metric-portfolio-value', 'children'),
      Output('metric-total-gain', 'children'),
      Output('metric-top-gainer', 'children'),
@@ -315,9 +383,10 @@ app.layout = dbc.Container([
     [State('stock-symbols', 'value'),
      State('date-range', 'start_date'),
      State('date-range', 'end_date'),
-     State('interval', 'value')]
+     State('interval', 'value'),
+     State('exchange', 'value')]
 )
-def update_dashboard(n_clicks, n_intervals, symbols, start_date, end_date, interval):
+def update_dashboard(n_clicks, n_intervals, symbols, start_date, end_date, interval, exchange):
     # Parse symbols
     symbol_list = [s.strip().upper() for s in symbols.split(',') if s.strip()]
     
@@ -326,12 +395,20 @@ def update_dashboard(n_clicks, n_intervals, symbols, start_date, end_date, inter
     
     # Fetch historical data for all stocks
     stock_data = {}
+    
     for symbol in symbol_list:
         try:
-            ticker = yf.Ticker(symbol)
-            hist = ticker.history(start=start_date, end=end_date, interval=interval)
-            if not hist.empty:
-                stock_data[symbol] = hist
+            if exchange in ['NSE', 'BSE']:
+                # Use Indian stock data fetcher
+                data = fetch_indian_stock_data(symbol, start_date, end_date, exchange, interval)
+                if not data.empty:
+                    stock_data[symbol] = data
+            else:
+                # Use yfinance for US stocks
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(start=start_date, end=end_date, interval=interval)
+                if not hist.empty:
+                    stock_data[symbol] = hist
         except Exception as e:
             print(f"Error fetching data for {symbol}: {e}")
     

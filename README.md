@@ -5,6 +5,9 @@ An interactive web application for analyzing and comparing stock performance usi
 ## Features
 
 - **Interactive Dashboard**: Built with Dash and Plotly for real-time data visualization
+- **Multi-Market Support**: US Stocks (NYSE/NASDAQ), NSE (India), BSE (India)
+- **Exchange Selection**: Switch between US, NSE, and BSE exchanges
+- **Quick Stock Presets**: Pre-configured stock lists (US Tech, Nifty 50, Indian Top 8)
 - **Date Range Filter**: Select custom date ranges for analysis (daily, weekly, monthly intervals)
 - **Stock Comparison**: Compare multiple stocks side by side
 - **Performance Metrics**: Real-time portfolio value, gains/losses, top performers
@@ -28,6 +31,17 @@ An interactive web application for analyzing and comparing stock performance usi
 - **Historical Volatility**: Rolling standard deviation of returns (annualized)
 - **Volatility Cone**: Volatility distribution across different time periods
 - **Technical Analysis Charts**: Interactive charts for all technical indicators
+
+### 🇮🇳 Indian Stock Market Integration
+
+- **NSE (National Stock Exchange)**: Full support for NSE-listed stocks
+- **BSE (Bombay Stock Exchange)**: Full support for BSE-listed stocks
+- **Nifty 50 Stocks**: Pre-configured list of Nifty 50 constituents
+- **Sensex Stocks**: Pre-configured list of Sensex constituents
+- **Symbol Mapping**: Automatic conversion to yfinance format (.NS/.BO)
+- **Combined Data Sources**: yfinance integration with NSE/BSE API support
+- **Index Data**: Support for NSE indices (Nifty 50, Nifty Bank, Nifty IT, etc.)
+- **Pre-open Market**: NSE pre-open market data integration
 
 ## Installation
 
