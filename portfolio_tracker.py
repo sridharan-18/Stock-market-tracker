@@ -5,6 +5,7 @@ Tracks buy/sell history and calculates portfolio performance.
 
 import pandas as pd
 import json
+import numpy as np
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import os
@@ -230,6 +231,234 @@ class PortfolioTracker:
             'total_gain_loss_pct': (total_gain_loss / total_cost * 100) if total_cost > 0 else 0,
             'asset_values': asset_values,
             'num_holdings': len(holdings)
+        }
+    
+    def calculate_cagr(self, current_prices: Dict[str, float], risk_free_rate: float = 0.02) -> Dict[str, Any]:
+        """
+        Calculate Compound Annual Growth Rate (CAGR) for the portfolio.
+        
+        Args:
+            current_prices: Dictionary with symbol as key and current price as value
+            risk_free_rate: Risk-free rate (default 2%)
+            
+        Returns:
+            CAGR metrics
+        """
+        if not self.transactions:
+            return {'cagr': 0, 'annualized_return': 0}
+        
+        # Get first and last transaction dates
+        df = self.get_transaction_history()
+        if df.empty:
+            return {'cagr': 0, 'annualized_return': 0}
+        
+        first_date = df['date'].min()
+        last_date = df['date'].max()
+        
+        # Calculate years between first and last transaction
+        years = (last_date - first_date).days / 365.25
+        
+        if years < 0.01:  # Less than ~3.65 days
+            return {'cagr': 0, 'annualized_return': 0, 'years': years}
+        
+        # Calculate portfolio value
+        portfolio_summary = self.calculate_portfolio_value(current_prices)
+        total_value = portfolio_summary['total_value']
+        total_cost = portfolio_summary['total_cost']
+        
+        if total_cost <= 0:
+            return {'cagr': 0, 'annualized_return': 0, 'years': years}
+        
+        # CAGR formula: (Ending Value / Beginning Value)^(1/n) - 1
+        cagr = ((total_value / total_cost) ** (1 / years)) - 1
+        
+        return {
+            'cagr': cagr * 100,  # Convert to percentage
+            'annualized_return': cagr * 100,
+            'years': years,
+            'total_value': total_value,
+            'total_cost': total_cost
+        }
+    
+    def calculate_sharpe_ratio(self, current_prices: Dict[str, float], 
+                               historical_data: Dict[str, pd.DataFrame] = None,
+                               risk_free_rate: float = 0.02) -> Dict[str, Any]:
+        """
+        Calculate Sharpe Ratio for the portfolio.
+        
+        Args:
+            current_prices: Dictionary with symbol as key and current price as value
+            historical_data: Dictionary with symbol as key and historical price DataFrame
+            risk_free_rate: Risk-free rate (default 2%)
+            
+        Returns:
+            Sharpe ratio metrics
+        """
+        if not self.transactions:
+            return {'sharpe_ratio': 0, 'sortino_ratio': 0}
+        
+        portfolio_summary = self.calculate_portfolio_value(current_prices)
+        total_value = portfolio_summary['total_value']
+        total_cost = portfolio_summary['total_cost']
+        
+        if total_cost <= 0:
+            return {'sharpe_ratio': 0, 'sortino_ratio': 0}
+        
+        # Calculate total return
+        total_return = (total_value - total_cost) / total_cost
+        
+        # If historical data provided, calculate volatility-based Sharpe ratio
+        if historical_data:
+            # Calculate portfolio returns over time
+            holdings = self.get_holdings()
+            portfolio_returns = []
+            
+            for symbol, holding in holdings.items():
+                if symbol in historical_data and not historical_data[symbol].empty:
+                    data = historical_data[symbol]
+                    # Calculate daily returns
+                    returns = data['Close'].pct_change().dropna()
+                    # Weight by holding quantity
+                    weighted_returns = returns * (holding['quantity'] * holding['avg_buy_price'])
+                    portfolio_returns.append(weighted_returns)
+            
+            if portfolio_returns:
+                # Combine all returns
+                all_returns = pd.concat(portfolio_returns)
+                # Calculate standard deviation (annualized)
+                volatility = all_returns.std() * np.sqrt(252) if len(all_returns) > 1 else 0
+                
+                if volatility > 0:
+                    # Sharpe Ratio = (Return - Risk Free Rate) / Volatility
+                    sharpe_ratio = (total_return - risk_free_rate) / volatility
+                else:
+                    sharpe_ratio = 0
+                
+                # Sortino Ratio (downside deviation)
+                negative_returns = all_returns[all_returns < 0]
+                downside_deviation = negative_returns.std() * np.sqrt(252) if len(negative_returns) > 1 else 0
+                
+                if downside_deviation > 0:
+                    sortino_ratio = (total_return - risk_free_rate) / downside_deviation
+                else:
+                    sortino_ratio = 0
+                
+                return {
+                    'sharpe_ratio': sharpe_ratio,
+                    'sortino_ratio': sortino_ratio,
+                    'volatility': volatility,
+                    'total_return': total_return,
+                    'risk_free_rate': risk_free_rate
+                }
+        
+        # Simple Sharpe ratio without historical data (using total return as proxy)
+        # Assume 20% annual volatility as default
+        default_volatility = 0.20
+        sharpe_ratio = (total_return - risk_free_rate) / default_volatility
+        
+        return {
+            'sharpe_ratio': sharpe_ratio,
+            'sortino_ratio': 0,
+            'volatility': default_volatility,
+            'total_return': total_return,
+            'risk_free_rate': risk_free_rate
+        }
+    
+    def calculate_max_drawdown(self, current_prices: Dict[str, float],
+                              historical_data: Dict[str, pd.DataFrame] = None) -> Dict[str, Any]:
+        """
+        Calculate Maximum Drawdown for the portfolio.
+        
+        Args:
+            current_prices: Dictionary with symbol as key and current price as value
+            historical_data: Dictionary with symbol as key and historical price DataFrame
+            
+        Returns:
+            Maximum drawdown metrics
+        """
+        if not historical_data:
+            return {'max_drawdown': 0, 'max_drawdown_pct': 0}
+        
+        holdings = self.get_holdings()
+        if not holdings:
+            return {'max_drawdown': 0, 'max_drawdown_pct': 0}
+        
+        # Calculate portfolio value over time
+        portfolio_values = []
+        
+        # Get common date range
+        all_dates = set()
+        for symbol, data in historical_data.items():
+            if symbol in holdings and not data.empty:
+                all_dates.update(data.index)
+        
+        if not all_dates:
+            return {'max_drawdown': 0, 'max_drawdown_pct': 0}
+        
+        sorted_dates = sorted(all_dates)
+        
+        for date in sorted_dates:
+            value = 0
+            for symbol, holding in holdings.items():
+                if symbol in historical_data and not historical_data[symbol].empty:
+                    data = historical_data[symbol]
+                    if date in data.index:
+                        price = data.loc[date, 'Close']
+                        value += holding['quantity'] * price
+            portfolio_values.append(value)
+        
+        if not portfolio_values:
+            return {'max_drawdown': 0, 'max_drawdown_pct': 0}
+        
+        portfolio_values = np.array(portfolio_values)
+        
+        # Calculate running maximum
+        running_max = np.maximum.accumulate(portfolio_values)
+        
+        # Calculate drawdown
+        drawdown = (portfolio_values - running_max) / running_max
+        
+        # Maximum drawdown
+        max_drawdown = drawdown.min()
+        max_drawdown_pct = max_drawdown * 100
+        
+        return {
+            'max_drawdown': max_drawdown,
+            'max_drawdown_pct': max_drawdown_pct,
+            'peak_value': running_max.max(),
+            'trough_value': portfolio_values[drawdown.argmin()]
+        }
+    
+    def get_advanced_metrics(self, current_prices: Dict[str, float],
+                           historical_data: Dict[str, pd.DataFrame] = None,
+                           risk_free_rate: float = 0.02) -> Dict[str, Any]:
+        """
+        Get all advanced portfolio metrics.
+        
+        Args:
+            current_prices: Dictionary with symbol as key and current price as value
+            historical_data: Dictionary with symbol as key and historical price DataFrame
+            risk_free_rate: Risk-free rate
+            
+        Returns:
+            Advanced metrics including CAGR, Sharpe ratio, Max Drawdown
+        """
+        portfolio_summary = self.calculate_portfolio_value(current_prices)
+        cagr_data = self.calculate_cagr(current_prices, risk_free_rate)
+        sharpe_data = self.calculate_sharpe_ratio(current_prices, historical_data, risk_free_rate)
+        drawdown_data = self.calculate_max_drawdown(current_prices, historical_data)
+        
+        return {
+            'portfolio_value': portfolio_summary['total_value'],
+            'total_cost': portfolio_summary['total_cost'],
+            'total_gain_loss': portfolio_summary['total_gain_loss'],
+            'total_gain_loss_pct': portfolio_summary['total_gain_loss_pct'],
+            'cagr': cagr_data.get('cagr', 0),
+            'sharpe_ratio': sharpe_data.get('sharpe_ratio', 0),
+            'sortino_ratio': sharpe_data.get('sortino_ratio', 0),
+            'max_drawdown_pct': drawdown_data.get('max_drawdown_pct', 0),
+            'volatility': sharpe_data.get('volatility', 0),
+            'num_holdings': portfolio_summary['num_holdings']
         }
     
     def get_transaction_history(self) -> pd.DataFrame:

@@ -29,6 +29,15 @@ An interactive web application for analyzing and comparing stock performance usi
 - **Multi-Asset Support**: Track stocks, cryptocurrencies, and commodities in one portfolio
 - **Persistent Storage**: Portfolio data saved to JSON file for persistence
 
+### 📈 Advanced Portfolio Metrics
+
+- **CAGR (Compound Annual Growth Rate)**: Annualized return calculation over investment period
+- **Sharpe Ratio**: Risk-adjusted return metric (Return - Risk Free Rate) / Volatility
+- **Sortino Ratio**: Downside risk-adjusted return metric focusing on negative returns
+- **Maximum Drawdown**: Largest peak-to-trough decline in portfolio value
+- **Volatility**: Annualized standard deviation of portfolio returns
+- **Real-time Calculation**: Metrics update automatically with current prices
+
 ### ₿ Cryptocurrency Support
 
 - **Bitcoin (BTC)**: Real-time Bitcoin price tracking

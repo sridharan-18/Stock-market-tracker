@@ -317,6 +317,35 @@ app.layout = dbc.Container([
         ], md=6)
     ], className='mb-4'),
 
+    # Advanced Portfolio Metrics Section
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Advanced Portfolio Metrics", className="card-title"),
+                    dbc.Row([
+                        dbc.Col([
+                            html.H4(id='metric-cagr', className="text-info"),
+                            html.P("CAGR (%)", className="card-text text-muted")
+                        ], md=3),
+                        dbc.Col([
+                            html.H4(id='metric-sharpe', className="text-warning"),
+                            html.P("Sharpe Ratio", className="card-text text-muted")
+                        ], md=3),
+                        dbc.Col([
+                            html.H4(id='metric-sortino', className="text-success"),
+                            html.P("Sortino Ratio", className="card-text text-muted")
+                        ], md=3),
+                        dbc.Col([
+                            html.H4(id='metric-drawdown', className="text-danger"),
+                            html.P("Max Drawdown (%)", className="card-text text-muted")
+                        ], md=3)
+                    ])
+                ])
+            ])
+        ], className='mb-4')
+    ]),
+
     # Charts Section
     dbc.Row([
         dbc.Col([
@@ -1006,7 +1035,11 @@ def update_technical_indicators(selected_stock, indicator_type, symbols, start_d
 
 @app.callback(
     [Output('portfolio-holdings', 'children'),
-     Output('transaction-history', 'children')],
+     Output('transaction-history', 'children'),
+     Output('metric-cagr', 'children'),
+     Output('metric-sharpe', 'children'),
+     Output('metric-sortino', 'children'),
+     Output('metric-drawdown', 'children')],
     [Input('add-tx-btn', 'n_clicks'),
      Input('interval-component', 'n_intervals')],
     [State('tx-symbol', 'value'),
@@ -1100,7 +1133,35 @@ def update_portfolio(n_clicks, n_intervals, symbol, action, quantity, price, ass
     else:
         tx_table = html.P("No transactions yet.", className="text-muted")
     
-    return holdings_table, tx_table
+    # Calculate advanced metrics
+    cagr_text = "N/A"
+    sharpe_text = "N/A"
+    sortino_text = "N/A"
+    drawdown_text = "N/A"
+    
+    if holdings:
+        try:
+            # Fetch current prices for holdings
+            current_prices = {}
+            for symbol in holdings.keys():
+                try:
+                    ticker = yf.Ticker(symbol)
+                    info = ticker.info
+                    current_prices[symbol] = info.get('currentPrice', 0)
+                except:
+                    current_prices[symbol] = 0
+            
+            # Get advanced metrics
+            advanced_metrics = portfolio_tracker.get_advanced_metrics(current_prices)
+            
+            cagr_text = f"{advanced_metrics.get('cagr', 0):.2f}%"
+            sharpe_text = f"{advanced_metrics.get('sharpe_ratio', 0):.2f}"
+            sortino_text = f"{advanced_metrics.get('sortino_ratio', 0):.2f}"
+            drawdown_text = f"{advanced_metrics.get('max_drawdown_pct', 0):.2f}%"
+        except Exception as e:
+            print(f"Error calculating advanced metrics: {e}")
+    
+    return holdings_table, tx_table, cagr_text, sharpe_text, sortino_text, drawdown_text
 
 
 if __name__ == '__main__':
