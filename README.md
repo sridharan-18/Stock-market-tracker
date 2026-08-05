@@ -5,9 +5,9 @@ An interactive web application for analyzing and comparing stock performance usi
 ## Features
 
 - **Interactive Dashboard**: Built with Dash and Plotly for real-time data visualization
-- **Multi-Market Support**: US Stocks (NYSE/NASDAQ), NSE (India), BSE (India)
-- **Exchange Selection**: Switch between US, NSE, and BSE exchanges
-- **Quick Stock Presets**: Pre-configured stock lists (US Tech, Nifty 50, Indian Top 8)
+- **Multi-Market Support**: US Stocks (NYSE/NASDAQ), NSE (India), BSE (India), Cryptocurrencies, Commodities
+- **Exchange Selection**: Switch between US, NSE, BSE, Crypto, and Commodities
+- **Quick Stock Presets**: Pre-configured stock lists (US Tech, Nifty 50, Indian Top 8, Crypto, Commodities)
 - **Date Range Filter**: Select custom date ranges for analysis (daily, weekly, monthly intervals)
 - **Stock Comparison**: Compare multiple stocks side by side
 - **Performance Metrics**: Real-time portfolio value, gains/losses, top performers
@@ -19,6 +19,32 @@ An interactive web application for analyzing and comparing stock performance usi
 - **Stock Details Table**: Detailed breakdown of all tracked stocks
 - **Auto-refresh**: Dashboard updates every 15 seconds
 - **Dark Theme**: Professional dark theme with Bootstrap
+
+### 💰 Portfolio Management
+
+- **Transaction Tracking**: Record buy/sell transactions for stocks, crypto, and commodities
+- **Holdings Display**: View current portfolio holdings with average buy prices
+- **Transaction History**: Complete history of all buy/sell transactions
+- **Realized Gain/Loss**: Track realized gains and losses from sold positions
+- **Multi-Asset Support**: Track stocks, cryptocurrencies, and commodities in one portfolio
+- **Persistent Storage**: Portfolio data saved to JSON file for persistence
+
+### ₿ Cryptocurrency Support
+
+- **Bitcoin (BTC)**: Real-time Bitcoin price tracking
+- **Ethereum (ETH)**: Real-time Ethereum price tracking
+- **Additional Cryptos**: Support for XRP, ADA, SOL, DOGE, DOT, MATIC, LINK, AVAX
+- **Crypto-Specific Features**: 24h volume, market cap, circulating supply
+- **USD Pairs**: All crypto prices in USD via yfinance
+
+### 🛢️ Commodities Support
+
+- **Gold (GC=F)**: Gold futures price tracking
+- **Crude Oil (CL=F)**: Crude oil futures price tracking
+- **Silver (SI=F)**: Silver futures price tracking
+- **Natural Gas (NG=F)**: Natural gas futures price tracking
+- **Additional Commodities**: Copper, Platinum, Corn, Wheat, Soybean, Coffee
+- **Futures Data**: Real-time futures contract prices via yfinance
 
 ### 📊 Advanced Analytics
 

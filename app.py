@@ -15,9 +15,22 @@ from indian_stocks import (
     fetch_nse_index_data,
     combine_yfinance_nse_data
 )
+from crypto_commodities import (
+    CryptoData,
+    CommodityData,
+    MultiAssetData,
+    fetch_crypto_data,
+    fetch_commodity_data,
+    get_default_crypto_symbols,
+    get_default_commodity_symbols
+)
+from portfolio_tracker import PortfolioTracker
 
 # Initialize Dash app with Bootstrap theme
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY], suppress_callback_exceptions=True)
+
+# Initialize portfolio tracker
+portfolio_tracker = PortfolioTracker()
 
 # Default stocks (mixed US and Indian)
 DEFAULT_STOCKS = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'RELIANCE', 'TCS', 'HDFCBANK', 'INFY']
@@ -25,11 +38,19 @@ DEFAULT_STOCKS = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'RELIANCE', 'TCS', 'HDFCBANK'
 # Indian stocks for quick selection
 INDIAN_STOCKS = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'HINDUNILVR', 'ITC', 'SBIN']
 
+# Crypto symbols
+CRYPTO_SYMBOLS = ['BTC', 'ETH']
+
+# Commodity symbols
+COMMODITY_SYMBOLS = ['GOLD', 'OIL']
+
 # Exchange options
 EXCHANGE_OPTIONS = [
     {'label': 'US Stocks (NYSE/NASDAQ)', 'value': 'US'},
     {'label': 'NSE (National Stock Exchange)', 'value': 'NSE'},
-    {'label': 'BSE (Bombay Stock Exchange)', 'value': 'BSE'}
+    {'label': 'BSE (Bombay Stock Exchange)', 'value': 'BSE'},
+    {'label': 'Cryptocurrencies', 'value': 'CRYPTO'},
+    {'label': 'Commodities', 'value': 'COMMODITY'}
 ]
 
 
@@ -154,7 +175,9 @@ app.layout = dbc.Container([
                                 options=[
                                     {'label': 'US Tech Stocks', 'value': 'US_TECH'},
                                     {'label': 'Indian Nifty 50', 'value': 'NIFTY50'},
-                                    {'label': 'Indian Top 8', 'value': 'INDIAN_TOP8'}
+                                    {'label': 'Indian Top 8', 'value': 'INDIAN_TOP8'},
+                                    {'label': 'Cryptocurrencies (BTC, ETH)', 'value': 'CRYPTO'},
+                                    {'label': 'Commodities (Gold, Oil)', 'value': 'COMMODITY'}
                                 ],
                                 value=None,
                                 placeholder='Select preset...',
@@ -223,6 +246,76 @@ app.layout = dbc.Container([
             ])
         ], className='mb-4')
     ]),
+
+    # Portfolio Tracking Section
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Portfolio Management", className="card-title"),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Label("Symbol"),
+                            dcc.Input(id='tx-symbol', type='text', placeholder='AAPL', className='form-control mb-2')
+                        ], md=2),
+                        dbc.Col([
+                            html.Label("Action"),
+                            dcc.Dropdown(
+                                id='tx-action',
+                                options=[{'label': 'Buy', 'value': 'buy'}, {'label': 'Sell', 'value': 'sell'}],
+                                value='buy',
+                                className='mb-2'
+                            )
+                        ], md=2),
+                        dbc.Col([
+                            html.Label("Quantity"),
+                            dcc.Input(id='tx-quantity', type='number', placeholder='10', className='form-control mb-2')
+                        ], md=2),
+                        dbc.Col([
+                            html.Label("Price"),
+                            dcc.Input(id='tx-price', type='number', placeholder='150.00', className='form-control mb-2')
+                        ], md=2),
+                        dbc.Col([
+                            html.Label("Asset Type"),
+                            dcc.Dropdown(
+                                id='tx-asset-type',
+                                options=[
+                                    {'label': 'Stock', 'value': 'stock'},
+                                    {'label': 'Crypto', 'value': 'crypto'},
+                                    {'label': 'Commodity', 'value': 'commodity'}
+                                ],
+                                value='stock',
+                                className='mb-2'
+                            )
+                        ], md=2),
+                        dbc.Col([
+                            html.Label(""),
+                            dbc.Button("Add Transaction", id='add-tx-btn', color='success', className='mt-2')
+                        ], md=2)
+                    ])
+                ])
+            ])
+        ], className='mb-4')
+    ]),
+
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Current Holdings", className="card-title"),
+                    html.Div(id='portfolio-holdings')
+                ])
+            ])
+        ], md=6),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H5("Transaction History", className="card-title"),
+                    html.Div(id='transaction-history')
+                ])
+            ])
+        ], md=6)
+    ], className='mb-4'),
 
     # Charts Section
     dbc.Row([
@@ -358,10 +451,18 @@ def update_stock_symbols(quick_select, exchange):
         return ','.join(fetcher.get_nifty50_symbols())
     elif quick_select == 'INDIAN_TOP8':
         return ','.join(INDIAN_STOCKS)
+    elif quick_select == 'CRYPTO':
+        return ','.join(CRYPTO_SYMBOLS)
+    elif quick_select == 'COMMODITY':
+        return ','.join(COMMODITY_SYMBOLS)
     elif exchange == 'NSE':
         return ','.join(get_default_indian_stocks('NSE'))
     elif exchange == 'BSE':
         return ','.join(get_default_indian_stocks('BSE'))
+    elif exchange == 'CRYPTO':
+        return ','.join(CRYPTO_SYMBOLS)
+    elif exchange == 'COMMODITY':
+        return ','.join(COMMODITY_SYMBOLS)
     else:
         return ','.join(DEFAULT_STOCKS)
 
@@ -401,6 +502,16 @@ def update_dashboard(n_clicks, n_intervals, symbols, start_date, end_date, inter
             if exchange in ['NSE', 'BSE']:
                 # Use Indian stock data fetcher
                 data = fetch_indian_stock_data(symbol, start_date, end_date, exchange, interval)
+                if not data.empty:
+                    stock_data[symbol] = data
+            elif exchange == 'CRYPTO':
+                # Use crypto data fetcher
+                data = fetch_crypto_data(symbol, start_date, end_date, interval)
+                if not data.empty:
+                    stock_data[symbol] = data
+            elif exchange == 'COMMODITY':
+                # Use commodity data fetcher
+                data = fetch_commodity_data(symbol, start_date, end_date, interval)
                 if not data.empty:
                     stock_data[symbol] = data
             else:
@@ -888,7 +999,108 @@ def update_technical_indicators(selected_stock, indicator_type, symbols, start_d
         
     except Exception as e:
         print(f"Error generating technical indicators: {e}")
-        return go.Figure()
+        return fig
+
+
+# Portfolio Tracking Callbacks
+
+@app.callback(
+    [Output('portfolio-holdings', 'children'),
+     Output('transaction-history', 'children')],
+    [Input('add-tx-btn', 'n_clicks'),
+     Input('interval-component', 'n_intervals')],
+    [State('tx-symbol', 'value'),
+     State('tx-action', 'value'),
+     State('tx-quantity', 'value'),
+     State('tx-price', 'value'),
+     State('tx-asset-type', 'value')]
+)
+def update_portfolio(n_clicks, n_intervals, symbol, action, quantity, price, asset_type):
+    """Update portfolio display and handle new transactions."""
+    
+    # Add transaction if button clicked and all fields provided
+    if n_clicks and n_clicks > 0 and symbol and action and quantity and price:
+        try:
+            portfolio_tracker.add_transaction(
+                symbol=symbol,
+                action=action,
+                quantity=float(quantity),
+                price=float(price),
+                asset_type=asset_type
+            )
+        except Exception as e:
+            print(f"Error adding transaction: {e}")
+    
+    # Get current holdings
+    holdings = portfolio_tracker.get_holdings()
+    
+    # Create holdings table
+    if holdings:
+        holdings_rows = []
+        for symbol, data in holdings.items():
+            holdings_rows.append(
+                html.Tr([
+                    html.Td(symbol),
+                    html.Td(f"{data['quantity']:.4f}"),
+                    html.Td(f"${data['avg_buy_price']:.2f}"),
+                    html.Td(f"${data['total_invested']:.2f}"),
+                    html.Td(f"${data['realized_gain_loss']:.2f}"),
+                    html.Td(data['asset_type'].capitalize())
+                ])
+            )
+        
+        holdings_table = dbc.Table([
+            html.Thead([
+                html.Tr([
+                    html.Th("Symbol"),
+                    html.Th("Quantity"),
+                    html.Th("Avg Buy Price"),
+                    html.Th("Total Invested"),
+                    html.Th("Realized Gain/Loss"),
+                    html.Th("Type")
+                ])
+            ]),
+            html.Tbody(holdings_rows)
+        ], striped=True, bordered=True, hover=True, dark=True, size='sm')
+    else:
+        holdings_table = html.P("No holdings yet. Add transactions to build your portfolio.", className="text-muted")
+    
+    # Get transaction history
+    transactions = portfolio_tracker.get_transactions()
+    
+    if transactions:
+        tx_rows = []
+        for tx in transactions[-10:]:  # Show last 10 transactions
+            tx_rows.append(
+                html.Tr([
+                    html.Td(tx['date']),
+                    html.Td(tx['symbol']),
+                    html.Td(tx['action'].capitalize()),
+                    html.Td(f"{tx['quantity']:.4f}"),
+                    html.Td(f"${tx['price']:.2f}"),
+                    html.Td(f"${tx['total']:.2f}"),
+                    html.Td(tx['asset_type'].capitalize())
+                ])
+            )
+        
+        tx_table = dbc.Table([
+            html.Thead([
+                html.Tr([
+                    html.Th("Date"),
+                    html.Th("Symbol"),
+                    html.Th("Action"),
+                    html.Th("Quantity"),
+                    html.Th("Price"),
+                    html.Th("Total"),
+                    html.Th("Type")
+                ])
+            ]),
+            html.Tbody(tx_rows)
+        ], striped=True, bordered=True, hover=True, dark=True, size='sm')
+    else:
+        tx_table = html.P("No transactions yet.", className="text-muted")
+    
+    return holdings_table, tx_table
 
 
 if __name__ == '__main__':
