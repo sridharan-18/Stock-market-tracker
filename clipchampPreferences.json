@@ -1,0 +1,11 @@
+{
+  "appName": "Stock Market Tracker",
+  "version": "1.0.0",
+  "theme": "dark",
+  "preferences": {
+    "autoUpdate": true,
+    "updateInterval": 5000,
+    "notifications": true,
+    "persistWatchlist": true
+  }
+}
