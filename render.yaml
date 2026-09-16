@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: stock-market-tracker
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --host 0.0.0.0 --port $PORT --workers 4 --timeout 120
+    envVars:
+      - key: PORT
+        value: 8050
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    healthCheckPath: /
+    autoDeploy: true
+
+  - type: web
+    name: stock-tracker-powerbi-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python powerbi_api.py
+    envVars:
+      - key: POWERBI_API_PORT
+        value: 5000
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    healthCheckPath: /api/powerbi/health
+    autoDeploy: true

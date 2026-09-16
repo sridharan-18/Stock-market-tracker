@@ -1,242 +1,6 @@
-# Stock Market Dashboard
-
-An interactive web application for analyzing and comparing stock performance using Dash and Plotly.
-
-## Features
-
-- **Interactive Dashboard**: Built with Dash and Plotly for real-time data visualization
-- **Multi-Market Support**: US Stocks (NYSE/NASDAQ), NSE (India), BSE (India), Cryptocurrencies, Commodities
-- **Exchange Selection**: Switch between US, NSE, BSE, Crypto, and Commodities
-- **Quick Stock Presets**: Pre-configured stock lists (US Tech, Nifty 50, Indian Top 8, Crypto, Commodities)
-- **Date Range Filter**: Select custom date ranges for analysis (daily, weekly, monthly intervals)
-- **Stock Comparison**: Compare multiple stocks side by side
-- **Performance Metrics**: Real-time portfolio value, gains/losses, top performers
-- **Price Comparison Chart**: Interactive line chart comparing stock prices
-- **Performance Bar Chart**: Visual comparison of percentage gains/losses
-- **Volume Comparison**: Average trading volume comparison
-- **Risk Metrics**: Volatility and Sharpe ratio analysis
-- **Correlation Matrix**: Heatmap showing stock correlations
-- **Stock Details Table**: Detailed breakdown of all tracked stocks
-- **Auto-refresh**: Dashboard updates every 15 seconds
-- **Dark Theme**: Professional dark theme with Bootstrap
-
-### 💰 Portfolio Management
-
-- **Transaction Tracking**: Record buy/sell transactions for stocks, crypto, and commodities
-- **Holdings Display**: View current portfolio holdings with average buy prices
-- **Transaction History**: Complete history of all buy/sell transactions
-- **Realized Gain/Loss**: Track realized gains and losses from sold positions
-- **Multi-Asset Support**: Track stocks, cryptocurrencies, and commodities in one portfolio
-- **Persistent Storage**: Portfolio data saved to JSON file for persistence
-
-### 📈 Advanced Portfolio Metrics
-
-- **CAGR (Compound Annual Growth Rate)**: Annualized return calculation over investment period
-- **Sharpe Ratio**: Risk-adjusted return metric (Return - Risk Free Rate) / Volatility
-- **Sortino Ratio**: Downside risk-adjusted return metric focusing on negative returns
-- **Maximum Drawdown**: Largest peak-to-trough decline in portfolio value
-- **Volatility**: Annualized standard deviation of portfolio returns
-- **Real-time Calculation**: Metrics update automatically with current prices
-
-### ₿ Cryptocurrency Support
-
-- **Bitcoin (BTC)**: Real-time Bitcoin price tracking
-- **Ethereum (ETH)**: Real-time Ethereum price tracking
-- **Additional Cryptos**: Support for XRP, ADA, SOL, DOGE, DOT, MATIC, LINK, AVAX
-- **Crypto-Specific Features**: 24h volume, market cap, circulating supply
-- **USD Pairs**: All crypto prices in USD via yfinance
-
-### 🛢️ Commodities Support
-
-- **Gold (GC=F)**: Gold futures price tracking
-- **Crude Oil (CL=F)**: Crude oil futures price tracking
-- **Silver (SI=F)**: Silver futures price tracking
-- **Natural Gas (NG=F)**: Natural gas futures price tracking
-- **Additional Commodities**: Copper, Platinum, Corn, Wheat, Soybean, Coffee
-- **Futures Data**: Real-time futures contract prices via yfinance
-
-### 📊 Advanced Analytics
-
-- **Moving Averages (SMA)**: Simple Moving Average with 20 and 50 periods
-- **Moving Averages (EMA)**: Exponential Moving Average with 20 periods
-- **RSI Indicator**: Relative Strength Index with overbought/oversold levels (70/30)
-- **MACD Indicator**: Moving Average Convergence Divergence with signal line and histogram
-- **Bollinger Bands**: Volatility bands with upper/lower bands and SMA
-- **ATR (Average True Range)**: Measure of volatility considering price ranges
-- **Historical Volatility**: Rolling standard deviation of returns (annualized)
-- **Volatility Cone**: Volatility distribution across different time periods
-- **Technical Analysis Charts**: Interactive charts for all technical indicators
-
-### 🇮🇳 Indian Stock Market Integration
-
-- **NSE (National Stock Exchange)**: Full support for NSE-listed stocks
-- **BSE (Bombay Stock Exchange)**: Full support for BSE-listed stocks
-- **Nifty 50 Stocks**: Pre-configured list of Nifty 50 constituents
-- **Sensex Stocks**: Pre-configured list of Sensex constituents
-- **Symbol Mapping**: Automatic conversion to yfinance format (.NS/.BO)
-- **Combined Data Sources**: yfinance integration with NSE/BSE API support
-- **Index Data**: Support for NSE indices (Nifty 50, Nifty Bank, Nifty IT, etc.)
-- **Pre-open Market**: NSE pre-open market data integration
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/sridharan-18/Stock-Dashboard.git
-cd Stock-Dashboard
-```
-
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-## Usage
-
-1. Run the dashboard:
-```bash
-python app.py
-```
-
-2. Open your browser and navigate to:
-```
-http://127.0.0.1:8050
-```
-
-## Dashboard Features
-
-### Filters
-- **Stock Symbols**: Enter comma-separated stock symbols (e.g., AAPL,TSLA,MSFT)
-- **Date Range**: Select start and end dates for analysis
-- **Interval**: Choose between Daily, Weekly, or Monthly data
-
-### Performance Metrics
-- **Portfolio Value**: Total value of all tracked stocks
-- **Total Gain/Loss**: Combined gains/losses across all stocks
-- **Top Gainer**: Stock with the highest percentage gain
-- **Top Loser**: Stock with the highest percentage loss
-
-### Charts
-- **Price Comparison Chart**: Line chart showing price trends over time
-- **Performance Comparison**: Bar chart showing percentage gains/losses
-- **Volume Comparison**: Bar chart showing average trading volume
-- **Risk Metrics**: Grouped bar chart showing volatility and Sharpe ratio
-- **Correlation Matrix**: Heatmap showing correlations between stocks
-- **Technical Indicators**: Interactive charts for SMA, EMA, RSI, MACD, and Bollinger Bands
-
-### Stock Details Table
-- Symbol
-- Current Price
-- Gain/Loss
-- Change %
-- Average Volume
-- Volatility (annualized)
-- Sharpe Ratio
-
-## Default Stocks
-
-The dashboard comes pre-configured with these popular stocks:
-- AAPL (Apple)
-- TSLA (Tesla)
-- MSFT (Microsoft)
-- GOOGL (Alphabet)
-- AMZN (Amazon)
-- NVDA (NVIDIA)
-- META (Meta)
-- NFLX (Netflix)
-
-## Risk Metrics Explained
-
-- **Volatility**: Annualized standard deviation of returns (higher = more risk)
-- **Sharpe Ratio**: Risk-adjusted return (higher = better risk-adjusted performance)
-
-## Technical Indicators Explained
-
-### Moving Averages (SMA/EMA)
-- **SMA (Simple Moving Average)**: Average price over a specified period (20, 50 days)
-- **EMA (Exponential Moving Average)**: Weighted average giving more importance to recent prices
-- **Usage**: Identify trends and potential support/resistance levels
-
-### RSI (Relative Strength Index)
-- **Range**: 0-100
-- **Overbought**: Above 70 (potential sell signal)
-- **Oversold**: Below 30 (potential buy signal)
-- **Usage**: Identify overbought/oversold conditions
-
-### MACD (Moving Average Convergence Divergence)
-- **MACD Line**: Fast EMA (12) - Slow EMA (26)
-- **Signal Line**: EMA of MACD line (9)
-- **Histogram**: MACD Line - Signal Line
-- **Usage**: Identify trend changes and momentum
-
-### Bollinger Bands
-- **Upper Band**: SMA + (2 × Standard Deviation)
-- **Lower Band**: SMA - (2 × Standard Deviation)
-- **Usage**: Measure volatility and identify potential breakouts
-
-### ATR (Average True Range)
-- **Calculation**: Maximum of (High-Low, |High-Close|, |Low-Close|)
-- **Period**: 14-day average
-- **Usage**: Measure volatility and set stop-loss levels
-
-### Historical Volatility
-- **Calculation**: Standard deviation of log returns (annualized)
-- **Period**: 20-day rolling window
-- **Usage**: Assess risk and price variability
-
-### Volatility Cone
-- **Periods**: 30, 60, 90, 180 days
-- **Metrics**: Mean, Min, Max, 25th/75th percentiles
-- **Usage**: Compare current volatility to historical ranges
-
-## Technologies Used
-
-- **Dash**: Python web framework for interactive dashboards
-- **Plotly**: Interactive graphing library
-- **Dash Bootstrap Components**: Bootstrap components for Dash
-- **Pandas**: Data manipulation and analysis
-- **yfinance**: Yahoo Finance data API
-- **NumPy**: Numerical computing
-
-## File Structure
-
-```
-Stock-Dashboard/
-├── app.py              # Main dashboard application
-├── requirements.txt    # Python dependencies
-└── README.md          # This file
-```
-
-## Customization
-
-You can customize the dashboard by modifying:
-- `DEFAULT_STOCKS` in `app.py` to change default stocks
-- Date range in the DatePickerRange component
-- Chart layouts and colors in the callback functions
-
-## Troubleshooting
-
-### Data Not Loading
-- Check your internet connection
-- Verify stock symbols are valid
-- Try a shorter date range
-
-### Charts Not Displaying
-- Ensure all dependencies are installed
-- Check browser console for errors
-- Try refreshing the page
-
-## License
-
-MIT License
-
-## Contributing
-
-Feel free to submit issues and enhancement requests!
-=======
 # Stock Market Tracker
 
-A modern, interactive web application for tracking and managing stock portfolios with real-time price updates, watchlist management, and activity logging.
+A modern, interactive web application for tracking and managing stock portfolios with real-time price updates, watchlist management, activity logging, and Power BI integration for professional dashboards.
 
 ## Features
 
@@ -260,7 +24,7 @@ A modern, interactive web application for tracking and managing stock portfolios
 - **Activity Logging** - Track all your actions with timestamps
 - **Portfolio Statistics** - View total portfolio value, gains/losses, and top performers
 
-### � Portfolio Simulation
+### 💰 Portfolio Simulation
 - **Virtual Trading** - Buy and sell stocks with virtual cash
 - **Starting Capital** - Begin with $10,000 virtual cash balance
 - **Real-time Portfolio Value** - Track portfolio value based on current stock prices
@@ -299,7 +63,7 @@ A modern, interactive web application for tracking and managing stock portfolios
 - **Toast Notifications** - Real-time feedback for user actions
 
 ### 🚀 Built-in Stock Symbols
-The application includes mock data for these stocks:
+The application includes these popular stocks:
 - **AAPL** - Apple Inc.
 - **GOOGL** - Alphabet Inc.
 - **MSFT** - Microsoft Corporation
@@ -309,22 +73,93 @@ The application includes mock data for these stocks:
 - **NVDA** - NVIDIA Corporation
 - **NFLX** - Netflix Inc.
 
+### 🔄 Multi-Market Support
+- **US Stocks (NYSE/NASDAQ)** - Full support for US stock market
+- **NSE (National Stock Exchange)** - Full support for NSE-listed stocks
+- **BSE (Bombay Stock Exchange)** - Full support for BSE-listed stocks
+- **Cryptocurrencies** - Bitcoin, Ethereum, and major altcoins
+- **Commodities** - Gold, oil, silver, and other commodities
+
+### 📊 Advanced Analytics
+- **Moving Averages (SMA/EMA)** - Simple and Exponential Moving Averages
+- **RSI Indicator** - Relative Strength Index with overbought/oversold levels
+- **MACD Indicator** - Moving Average Convergence Divergence
+- **Bollinger Bands** - Volatility bands for trend analysis
+- **ATR (Average True Range)** - Measure of volatility
+- **Historical Volatility** - Rolling standard deviation of returns
+- **Volatility Cone** - Volatility distribution across time periods
+
+### 🎯 Advanced Portfolio Metrics
+- **CAGR (Compound Annual Growth Rate)** - Annualized return calculation
+- **Sharpe Ratio** - Risk-adjusted return metric
+- **Sortino Ratio** - Downside risk-adjusted return metric
+- **Maximum Drawdown** - Largest peak-to-trough decline
+- **Volatility** - Annualized standard deviation of returns
+
+### 📊 Power BI Integration
+- **REST API** - Built-in Flask API for Power BI connectivity
+- **Data Export** - Export stock and portfolio data in JSON/CSV format
+- **Schema Support** - Pre-configured dataset schemas for Power BI
+- **Dashboard Templates** - Ready-to-use Power BI dashboard configurations
+- **Real-time Data** - Live data endpoints for Power BI refresh
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/sridharan-18/Stock-market-tracker.git
+cd Stock-market-tracker
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+### Local Development
+
+1. Run the dashboard:
+```bash
+python app.py
+```
+
+2. Open your browser and navigate to:
+```
+http://127.0.0.1:8050
+```
+
+### Docker Deployment
+
+1. Build and run with Docker:
+```bash
+docker build -t stock-market-tracker .
+docker run -p 8050:8050 -p 8000:8000 stock-market-tracker
+```
+
+2. Or use Docker Compose:
+```bash
+docker-compose up -d
+```
+
+### Power BI API
+
+Run the Power BI integration API server:
+```bash
+python powerbi_api.py
+```
+
+The API will be available at `http://127.0.0.1:5000` with endpoints:
+- `GET /api/powerbi/health` - Health check
+- `GET /api/powerbi/stock-data?symbols=AAPL,MSFT&period=1y` - Stock data
+- `GET /api/powerbi/portfolio` - Portfolio data
+- `GET /api/powerbi/transactions` - Transaction history
+- `GET /api/powerbi/schema` - Dataset schema
+- `GET /api/powerbi/config` - Dashboard configuration
+- `GET /api/powerbi/metrics` - Aggregated metrics
+
 ## How to Use
-
-### Running the Applications
-
-**Web Dashboard (Dash):**
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run the Dash dashboard: `python dashboard/dashboard.py`
-3. Open browser to `http://127.0.0.1:8050`
-4. Use filters to customize date range, stocks, and interval
-5. View interactive charts and performance metrics
-
-**Web App (HTML/JS):**
-1. Start the backend server: `python src/fetch_data.py`
-2. Open `dashboard/index.html` in your web browser
-3. Use the search bar to find stocks by symbol (e.g., AAPL) or company name
-4. Click on a stock or press the Search button to add it to your watchlist
 
 ### Managing Your Watchlist
 - **Add Stocks**: Search and select stocks to track
@@ -369,129 +204,137 @@ The application includes mock data for these stocks:
 - **Red ✕↓** - Stock price decreased (negative change)
 - **Percentage** - Shows the percentage change from the last update
 
-## Statistics Overview
+## Deployment
 
-The dashboard displays:
-- **Portfolio Value** - Total value of cash and stock holdings
-- **Total Gain/Loss** - Portfolio return from initial $10,000 investment
-- **Watched Stocks** - Number of stocks in your watchlist
-- **Top Gainer** - Stock with the highest percentage gain
+### Heroku Deployment
 
-## Activity Log
+1. Install Heroku CLI and login:
+```bash
+heroku login
+```
 
-The recent activity section shows:
-- All actions performed (adding/removing stocks)
-- Timestamps for each action
-- Visual indicators for action type (positive/negative)
+2. Create a new Heroku app:
+```bash
+heroku create stock-market-tracker
+```
 
-## Technical Details
+3. Deploy:
+```bash
+git push heroku main
+```
 
-### Architecture
-- **HTML5** - Semantic markup structure
-- **CSS3** - Modern styling with CSS Grid/Flexbox
-- **Vanilla JavaScript** - Core application logic
-- **Plotly.js** - Interactive charting library for data visualization
-- **Python Server** - Backend for fetching live market data from Yahoo Finance
-- **Local Storage API** - For data persistence
+### Render Deployment
 
-### File Structure
+1. Connect your GitHub repository to Render
+2. Render will automatically detect the `render.yaml` configuration
+3. Deploy with the provided configuration
+
+### Google Cloud Deployment
+
+1. Enable Cloud Build and Cloud Run APIs:
+```bash
+gcloud services enable cloudbuild.googleapis.com run.googleapis.com
+```
+
+2. Build and deploy:
+```bash
+gcloud builds submit --config cloudbuild.yaml
+```
+
+3. Get the service URL:
+```bash
+gcloud run services describe stock-market-tracker --region us-central1 --format 'value(status.url)'
+```
+
+### Power BI Integration
+
+This project includes Power BI integration for professional dashboards:
+
+1. **Data Export**: Use the Power BI API to export stock and portfolio data
+2. **REST API**: Built-in Flask API for Power BI connectivity
+3. **Schema Support**: Pre-configured dataset schemas for Power BI
+4. **Dashboard Templates**: Ready-to-use Power BI dashboard configurations
+
+To connect Power BI:
+1. Deploy the application (using any of the methods above)
+2. Use the Power BI API endpoints as data sources
+3. Import the provided schema for field mapping
+4. Configure automatic data refresh
+
+## File Structure
+
 ```
 stock-market-tracker/
-├── data/               # Data storage directory
-├── notebooks/          # Jupyter notebooks for analysis
-├── src/                # Source code modules
-│   ├── fetch_data.py   # Data fetching from Yahoo Finance API
-│   ├── visualize.py    # Chart and visualization functions
-│   ├── portfolio.py    # Portfolio management logic
-│   └── alerts.py       # Alert and notification system
-├── dashboard/          # Web dashboard files
-│   ├── index.html      # Main web application
-│   ├── style.css       # Styling
-│   ├── script.js       # Frontend logic
-│   └── dashboard.py    # Dash interactive dashboard
-├── tests/              # Test files
-├── requirements.txt    # Python dependencies
-├── LICENSE             # MIT License
-└── README.md           # This file
+├── app.py                      # Main Dash dashboard application
+├── server.py                   # Backend server for data fetching
+├── indian_stocks.py            # Indian stock market integration
+├── crypto_commodities.py       # Crypto and commodities data
+├── portfolio_tracker.py        # Portfolio management logic
+├── powerbi_integration.py      # Power BI data integration
+├── powerbi_api.py              # Power BI REST API server
+├── dashboard/                  # Web dashboard files
+│   ├── index.html             # Main web application
+│   ├── style.css              # Styling
+│   ├── script.js              # Frontend logic
+│   └── dashboard.py           # Dash interactive dashboard
+├── data/                       # Data storage directory
+├── tests/                      # Test files
+├── requirements.txt            # Python dependencies
+├── Dockerfile                  # Docker configuration
+├── docker-compose.yml          # Docker Compose configuration
+├── Procfile                    # Heroku deployment configuration
+├── render.yaml                 # Render deployment configuration
+├── cloudbuild.yaml             # Google Cloud deployment configuration
+├── runtime.txt                 # Python runtime specification
+├── .dockerignore              # Docker ignore file
+├── .gitignore                 # Git ignore file
+├── LICENSE                    # MIT License
+└── README.md                  # This file
 ```
 
-### Key Functions
-- `addToWatchlist()` - Add stock to watchlist
-- `removeFromWatchlist()` - Remove stock from watchlist
-- `refreshWatchlist()` - Fetch live quotes from Yahoo Finance
-- `renderWatchlist()` - Render watchlist UI
-- `updateStats()` - Calculate and display statistics
-- `addActivity()` - Log user actions
-- `showToast()` - Display notifications
-- `buyStock()` - Execute buy transaction
-- `sellStock()` - Execute sell transaction
-- `calculatePortfolioValue()` - Calculate total portfolio value
-- `trackPortfolioValue()` - Record portfolio value over time
-- `updatePortfolioUI()` - Update portfolio statistics display
-- `renderPortfolioChart()` - Render portfolio performance chart
-- `setAlert()` - Set price threshold alerts for stocks
-- `checkAlerts()` - Check if any alerts should be triggered
-- `generateDailySummary()` - Generate daily portfolio performance summary
-- `openChartModal()` - Open interactive chart for a stock
-- `updateChart()` - Fetch and render historical data
-- `renderCandlestickChart()` - Render candlestick chart with Plotly
-- `calculateMovingAverages()` - Calculate 20-day and 50-day moving averages
+## Technologies Used
 
-## Browser Compatibility
+- **Dash**: Python web framework for interactive dashboards
+- **Plotly**: Interactive graphing library
+- **Dash Bootstrap Components**: Bootstrap components for Dash
+- **Pandas**: Data manipulation and analysis
+- **yfinance**: Yahoo Finance data API
+- **NumPy**: Numerical computing
+- **Flask**: Web framework for Power BI API
+- **Flask-CORS**: CORS support for Flask
+- **Gunicorn**: WSGI HTTP Server
 
-- ✅ Chrome/Chromium (latest)
-- ✅ Firefox (latest)
-- ✅ Safari (latest)
-- ✅ Edge (latest)
-- ✅ Mobile browsers
+## Troubleshooting
 
-## Future Enhancements
+### Data Not Loading
+- Check your internet connection
+- Verify stock symbols are valid
+- Try a shorter date range
 
-Potential features for future versions:
-- Price alerts and notifications
-- Portfolio comparison tools
-- Advanced technical indicators (RSI, MACD, Bollinger Bands)
-- Stock news feed integration
-- Multiple portfolio support
-- User authentication and cloud sync
-- Trading simulation
-- Export to CSV/Excel
-- Additional chart types (line, area, scatter)
+### Charts Not Displaying
+- Ensure all dependencies are installed
+- Check browser console for errors
+- Try refreshing the page
 
-## API Integration
+### Docker Issues
+- Ensure Docker is running
+- Check port availability (8050, 8000, 5000)
+- Verify Dockerfile syntax
 
-The application currently integrates with:
-- **Yahoo Finance** - Live quotes and historical OHLCV data via Python backend
-
-To run the backend server:
-```bash
-python server.py
-```
-
-The server will start on `http://127.0.0.1:8000` and provide:
-- `/quote?symbol=XXX` - Live quote endpoint
-- `/historical?symbol=XXX&interval=1d&range=1mo` - Historical data endpoint
-
-## Tips for Best Experience
-
-1. **Search Efficiently** - Start typing the stock symbol
-2. **Monitor Changes** - Watch prices update in real-time
-3. **Review Activity** - Check the activity log to see all your actions
-4. **Mobile Usage** - The app works great on mobile devices with touch support
+### Deployment Issues
+- Check deployment platform logs
+- Verify environment variables
+- Ensure all dependencies are in requirements.txt
 
 ## License
 
 MIT License - Feel free to use and modify as needed
 
-## Notes
+## Contributing
 
-- The current version uses simulated/mock stock data for demonstration
-- For production use, integrate with real market data APIs
-- Prices update automatically every 5 seconds
-- All watchlist data is saved locally in your browser
+Feel free to submit issues and enhancement requests!
 
 ---
 
-**Last Updated**: 2026-07-18  
-**Version**: 1.0.0
->>>>>>> baef758faa30d43c55c52b43737ba1e66a5b2963
+**Last Updated**: 2026-09-16  
+**Version**: 2.0.0

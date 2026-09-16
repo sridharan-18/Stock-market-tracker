@@ -7,6 +7,7 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime, timedelta
 import numpy as np
+import os
 from indian_stocks import (
     IndianStockData,
     fetch_indian_stock_data,
@@ -1165,4 +1166,7 @@ def update_portfolio(n_clicks, n_intervals, symbol, action, quantity, price, ass
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8050)
+    # For local development
+    debug_mode = os.environ.get('DASH_DEBUG', 'False').lower() == 'true'
+    port = int(os.environ.get('PORT', 8050))
+    app.run_server(debug=debug_mode, port=port)
