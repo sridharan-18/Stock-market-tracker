@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
@@ -25,6 +26,9 @@ COPY portfolio_tracker.py .
 COPY powerbi_integration.py .
 COPY powerbi_api.py .
 COPY dashboard/ ./dashboard/
+
+# Copy test files
+COPY tests/ ./tests/
 
 # Create directory for data persistence
 RUN mkdir -p /app/data
